@@ -1,0 +1,749 @@
+{% extends "base.html" %}
+
+{% block title %}About - SmartSploit Framework{% endblock %}
+
+{% block page_title %}About SmartSploit{% endblock %}
+{% block page_subtitle %}Smart Contract Exploitation Framework{% endblock %}
+
+{% block head %}
+<style>
+.about-hero {
+    text-align: center;
+    padding: 3rem 0;
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+    border-radius: 16px;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.about-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(66, 133, 244, 0.1));
+    pointer-events: none;
+}
+
+.about-hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.about-logo {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem auto;
+    font-size: 3rem;
+    color: white;
+    box-shadow: var(--shadow-glow);
+    animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.about-title {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.about-version {
+    display: inline-block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-accent);
+    border-radius: 20px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    margin-bottom: 1.5rem;
+}
+
+.about-description {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+    line-height: 1.6;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow);
+    border-color: var(--accent-cyan);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    font-size: 2rem;
+    color: white;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.feature-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-highlights li {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.feature-highlights li::before {
+    content: '✓';
+    color: var(--status-success);
+    font-weight: bold;
+    width: 16px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.architecture-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 3rem 0;
+}
+
+.architecture-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-accent);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.architecture-diagram {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.arch-component {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.arch-component:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+}
+
+.arch-component-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--accent-cyan);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.arch-component-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.arch-component-desc {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.security-notice {
+    background: linear-gradient(135deg, rgba(234, 67, 53, 0.1), rgba(255, 187, 51, 0.1));
+    border: 1px solid rgba(234, 67, 53, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 3rem 0;
+    text-align: center;
+}
+
+.security-notice-icon {
+    font-size: 3rem;
+    color: var(--status-warning);
+    margin-bottom: 1rem;
+}
+
+.security-notice-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--status-warning);
+    margin-bottom: 1rem;
+}
+
+.security-notice-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.team-section {
+    text-align: center;
+    padding: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    margin: 3rem 0;
+}
+
+.team-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-accent);
+    margin-bottom: 2rem;
+}
+
+.team-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto 2rem auto;
+}
+
+.contact-info {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.contact-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--accent-cyan);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.contact-link:hover {
+    color: var(--accent-blue);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .about-title {
+        font-size: 2rem;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .architecture-diagram {
+        grid-template-columns: 1fr;
+    }
+    
+    .contact-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="about-hero fade-in">
+    <div class="about-hero-content">
+        <div class="about-logo">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h1 class="about-title">SmartSploit</h1>
+        <div class="about-version">Version 2.1.0</div>
+        <p class="about-description">
+            A comprehensive Smart Contract Exploitation Framework designed for security researchers, 
+            penetration testers, and blockchain developers. Built with a Metasploit-like architecture 
+            and powered by machine learning for advanced vulnerability detection.
+        </p>
+    </div>
+</div>
+
+<!-- Framework Statistics -->
+<div class="stats-grid fade-in">
+    <div class="stat-item">
+        <span class="stat-value">4+</span>
+        <div class="stat-label">Module Categories</div>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value">15+</span>
+        <div class="stat-label">Exploit Modules</div>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value">6</span>
+        <div class="stat-label">Vulnerability Types</div>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value">5+</span>
+        <div class="stat-label">Blockchain Networks</div>
+    </div>
+</div>
+
+<!-- Core Features -->
+<div class="feature-grid fade-in">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-bomb"></i>
+        </div>
+        <h3 class="feature-title">Exploit Modules</h3>
+        <p class="feature-description">
+            Comprehensive collection of smart contract exploitation modules targeting various vulnerability classes.
+        </p>
+        <ul class="feature-highlights">
+            <li>Reentrancy attacks</li>
+            <li>Integer overflow/underflow</li>
+            <li>Access control bypass</li>
+            <li>Business logic flaws</li>
+            <li>DeFi-specific exploits</li>
+        </ul>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-brain"></i>
+        </div>
+        <h3 class="feature-title">ML-Powered Detection</h3>
+        <p class="feature-description">
+            Advanced machine learning algorithms for automated vulnerability discovery and risk assessment.
+        </p>
+        <ul class="feature-highlights">
+            <li>Bytecode pattern analysis</li>
+            <li>Behavioral anomaly detection</li>
+            <li>Risk scoring algorithms</li>
+            <li>Automated target prioritization</li>
+            <li>Continuous model training</li>
+        </ul>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-terminal"></i>
+        </div>
+        <h3 class="feature-title">Console Interface</h3>
+        <p class="feature-description">
+            Familiar Metasploit-like command-line interface for experienced penetration testers.
+        </p>
+        <ul class="feature-highlights">
+            <li>Interactive command shell</li>
+            <li>Tab completion</li>
+            <li>Command history</li>
+            <li>Session management</li>
+            <li>Module selection & configuration</li>
+        </ul>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3 class="feature-title">Web Dashboard</h3>
+        <p class="feature-description">
+            Professional web interface with real-time monitoring and comprehensive reporting capabilities.
+        </p>
+        <ul class="feature-highlights">
+            <li>Real-time vulnerability metrics</li>
+            <li>Interactive charts & graphs</li>
+            <li>Target analysis dashboard</li>
+            <li>Session monitoring</li>
+            <li>Export & reporting tools</li>
+        </ul>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h3 class="feature-title">Auxiliary Tools</h3>
+        <p class="feature-description">
+            Comprehensive suite of auxiliary modules for reconnaissance and information gathering.
+        </p>
+        <ul class="feature-highlights">
+            <li>Contract vulnerability scanning</li>
+            <li>Network reconnaissance</li>
+            <li>Static code analysis</li>
+            <li>Dynamic behavior analysis</li>
+            <li>Blockchain data gathering</li>
+        </ul>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-cogs"></i>
+        </div>
+        <h3 class="feature-title">Extensible Architecture</h3>
+        <p class="feature-description">
+            Modular framework design allowing easy extension and customization for specific needs.
+        </p>
+        <ul class="feature-highlights">
+            <li>Plugin-based architecture</li>
+            <li>Custom module development</li>
+            <li>API integration support</li>
+            <li>Multi-network compatibility</li>
+            <li>Configurable workflows</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Architecture Overview -->
+<div class="architecture-section fade-in">
+    <h2 class="architecture-title">Framework Architecture</h2>
+    <p class="text-center text-secondary mb-4">
+        SmartSploit follows a modular, extensible architecture inspired by the Metasploit Framework, 
+        specifically adapted for smart contract security testing.
+    </p>
+    
+    <div class="architecture-diagram">
+        <div class="arch-component">
+            <div class="arch-component-icon">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="arch-component-title">Core Framework</div>
+            <div class="arch-component-desc">
+                Central engine managing modules, sessions, and blockchain interfaces
+            </div>
+        </div>
+        
+        <div class="arch-component">
+            <div class="arch-component-icon">
+                <i class="fas fa-cubes"></i>
+            </div>
+            <div class="arch-component-title">Module System</div>
+            <div class="arch-component-desc">
+                Organized exploit, auxiliary, payload, and post-exploitation modules
+            </div>
+        </div>
+        
+        <div class="arch-component">
+            <div class="arch-component-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="arch-component-title">ML Engine</div>
+            <div class="arch-component-desc">
+                Machine learning models for automated vulnerability detection
+            </div>
+        </div>
+        
+        <div class="arch-component">
+            <div class="arch-component-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="arch-component-title">Web Interface</div>
+            <div class="arch-component-desc">
+                Professional web dashboard with REST API endpoints
+            </div>
+        </div>
+        
+        <div class="arch-component">
+            <div class="arch-component-icon">
+                <i class="fas fa-link"></i>
+            </div>
+            <div class="arch-component-title">Blockchain Interface</div>
+            <div class="arch-component-desc">
+                Multi-network blockchain connectivity and transaction handling
+            </div>
+        </div>
+        
+        <div class="arch-component">
+            <div class="arch-component-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="arch-component-title">Data Storage</div>
+            <div class="arch-component-desc">
+                Persistent storage for results, sessions, and training data
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Notice -->
+<div class="security-notice fade-in">
+    <div class="security-notice-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h3 class="security-notice-title">Ethical Use Only</h3>
+    <div class="security-notice-text">
+        <p>
+            SmartSploit is designed exclusively for legitimate security research, penetration testing, 
+            and educational purposes. Users must obtain proper authorization before testing any smart contracts 
+            or blockchain systems they do not own.
+        </p>
+        <p class="mt-2">
+            Unauthorized use of this framework against systems without explicit permission is illegal 
+            and unethical. Always follow responsible disclosure practices and comply with applicable laws.
+        </p>
+    </div>
+</div>
+
+<!-- Team & Development -->
+<div class="team-section fade-in">
+    <h2 class="team-title">Development Team</h2>
+    <p class="team-description">
+        SmartSploit is developed by a dedicated team of blockchain security researchers and software engineers 
+        committed to advancing smart contract security through innovative tools and methodologies.
+    </p>
+    
+    <div class="contact-info">
+        <a href="#" class="contact-link">
+            <i class="fab fa-github"></i>
+            GitHub Repository
+        </a>
+        <a href="#" class="contact-link">
+            <i class="fas fa-book"></i>
+            Documentation
+        </a>
+        <a href="#" class="contact-link">
+            <i class="fas fa-bug"></i>
+            Report Issues
+        </a>
+        <a href="#" class="contact-link">
+            <i class="fas fa-envelope"></i>
+            Contact Team
+        </a>
+    </div>
+</div>
+
+<!-- Technical Specifications -->
+<div class="card fade-in">
+    <div class="card-header">
+        <h3 class="card-title">Technical Specifications</h3>
+    </div>
+    <div class="card-body">
+        <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div>
+                <h5 class="text-accent mb-3">Core Technologies</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fab fa-python text-success"></i> Python 3.8+</li>
+                    <li class="mb-2"><i class="fas fa-flask text-info"></i> Flask Web Framework</li>
+                    <li class="mb-2"><i class="fas fa-database text-warning"></i> SQLite Database</li>
+                    <li class="mb-2"><i class="fas fa-cog text-secondary"></i> Web3.py Integration</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h5 class="text-accent mb-3">Machine Learning</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-chart-bar text-success"></i> Scikit-learn</li>
+                    <li class="mb-2"><i class="fas fa-table text-info"></i> Pandas & NumPy</li>
+                    <li class="mb-2"><i class="fas fa-brain text-warning"></i> Random Forest Models</li>
+                    <li class="mb-2"><i class="fas fa-target text-secondary"></i> Feature Engineering</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h5 class="text-accent mb-3">Supported Networks</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fab fa-ethereum text-success"></i> Ethereum Mainnet</li>
+                    <li class="mb-2"><i class="fas fa-flask text-info"></i> Sepolia Testnet</li>
+                    <li class="mb-2"><i class="fas fa-coins text-warning"></i> Polygon Network</li>
+                    <li class="mb-2"><i class="fas fa-link text-secondary"></i> BSC & Custom RPCs</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h5 class="text-accent mb-3">Vulnerability Coverage</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-sync text-success"></i> Reentrancy (SWC-107)</li>
+                    <li class="mb-2"><i class="fas fa-calculator text-info"></i> Integer Overflow (SWC-101)</li>
+                    <li class="mb-2"><i class="fas fa-lock text-warning"></i> Access Control (SWC-115)</li>
+                    <li class="mb-2"><i class="fas fa-clock text-secondary"></i> Timestamp Dependence</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add some interactive elements to the about page
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate statistics on scroll
+    const observerOptions = {
+        threshold: 0.7,
+        rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statValues = entry.target.querySelectorAll('.stat-value');
+                statValues.forEach(statValue => {
+                    const finalValue = statValue.textContent;
+                    const numericValue = parseInt(finalValue);
+                    
+                    if (!isNaN(numericValue)) {
+                        animateCounter(statValue, 0, numericValue, 2000);
+                    }
+                });
+            }
+        });
+    }, observerOptions);
+    
+    const statsGrid = document.querySelector('.stats-grid');
+    if (statsGrid) {
+        observer.observe(statsGrid);
+    }
+    
+    function animateCounter(element, start, end, duration) {
+        const range = end - start;
+        const startTime = performance.now();
+        
+        function updateCounter(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const currentValue = Math.floor(start + (range * progress));
+            element.textContent = currentValue + (element.textContent.includes('+') ? '+' : '');
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateCounter);
+            }
+        }
+        
+        requestAnimationFrame(updateCounter);
+    }
+    
+    // Add hover effects to feature cards
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Add click to copy functionality for contact links
+    const contactLinks = document.querySelectorAll('.contact-link');
+    contactLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Flash effect
+            const originalBg = this.style.backgroundColor;
+            this.style.backgroundColor = 'rgba(0, 212, 255, 0.2)';
+            
+            setTimeout(() => {
+                this.style.backgroundColor = originalBg;
+            }, 200);
+            
+            // Show tooltip
+            window.SmartSploitUtils?.showNotification?.('Feature coming soon!', 'info');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,860 @@
+{% extends "base.html" %}
+
+{% block title %}Console - SmartSploit Framework{% endblock %}
+
+{% block page_title %}Console Interface{% endblock %}
+{% block page_subtitle %}Metasploit-like command line interface{% endblock %}
+
+{% block head %}
+<style>
+.console-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    height: calc(100vh - 200px);
+}
+
+.main-console {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.console-terminal {
+    flex: 1;
+    background: #000011;
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+}
+
+.console-header {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.console-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.console-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.console-dot.red { background: #ff5f56; }
+.console-dot.yellow { background: #ffbd2e; }
+.console-dot.green { background: #27ca3f; }
+
+.console-title {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-left: 1rem;
+}
+
+.console-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.console-body {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    background: #000011;
+    color: var(--text-primary);
+}
+
+.console-output {
+    flex: 1;
+    margin-bottom: 1rem;
+}
+
+.console-line {
+    margin-bottom: 0.25rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.console-prompt {
+    color: var(--accent-cyan);
+    font-weight: 600;
+}
+
+.console-command {
+    color: var(--text-primary);
+}
+
+.console-output-success {
+    color: var(--status-success);
+}
+
+.console-output-error {
+    color: var(--status-error);
+}
+
+.console-output-warning {
+    color: var(--status-warning);
+}
+
+.console-output-info {
+    color: var(--status-info);
+}
+
+.console-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border-primary);
+    padding-top: 0.5rem;
+}
+
+.console-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.console-input::placeholder {
+    color: var(--text-muted);
+}
+
+.sidebar-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.help-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.help-panel-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.help-panel-body {
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.help-command {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+.help-command-name {
+    color: var(--accent-cyan);
+    font-weight: 600;
+    min-width: 60px;
+}
+
+.help-command-desc {
+    color: var(--text-secondary);
+    text-align: right;
+    flex: 1;
+    margin-left: 1rem;
+}
+
+.quick-actions {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.quick-actions-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.quick-actions-body {
+    padding: 1rem;
+}
+
+.quick-action-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+.status-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.status-panel-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.status-panel-body {
+    padding: 1rem;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.status-label {
+    color: var(--text-secondary);
+}
+
+.status-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.command-history {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.history-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    transition: all 0.2s ease;
+}
+
+.history-item:hover,
+.history-item.active {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .console-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+    }
+    
+    .sidebar-panel {
+        grid-row: 2;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="console-layout fade-in">
+    <!-- Main Console -->
+    <div class="main-console">
+        <div class="console-terminal">
+            <div class="console-header">
+                <div class="d-flex align-items-center">
+                    <div class="console-dots">
+                        <div class="console-dot red"></div>
+                        <div class="console-dot yellow"></div>
+                        <div class="console-dot green"></div>
+                    </div>
+                    <span class="console-title">smartsploit</span>
+                </div>
+                
+                <div class="console-actions">
+                    <button class="btn btn-sm" id="clear-console" title="Clear Console">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="btn btn-sm" id="save-session" title="Save Session">
+                        <i class="fas fa-save"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="console-body" id="console-body">
+                <div id="console-output" class="console-output">
+                    <!-- Welcome Banner -->
+                    <div class="console-line console-output-info">
+    ___                      _   ___       _       _ _   
+   / __|_ __  __ _ _ _ _ _   _/ |_/ __| ___ | |___ _(_) |_ 
+   \__ \ '  \/ _` | '_|  '_) |  \__ \|___|_ | / _ | |  _|
+   |___/_|_|_\__,_|_|    |__/   |___/   |_/_\___\_|\__|
+                    </div>
+                    <div class="console-line console-output-info">        Smart Contract Exploitation Framework</div>
+                    <div class="console-line console-output-info">                 Version 2.1.0</div>
+                    <div class="console-line"></div>
+                    <div class="console-line console-output-success">[+] SmartSploit Framework initialized</div>
+                    <div class="console-line console-output-success">[+] Modules loaded successfully</div>
+                    <div class="console-line console-output-info">[*] Type 'help' for available commands</div>
+                    <div class="console-line console-output-info">[*] Type 'show exploits' to list exploit modules</div>
+                    <div class="console-line"></div>
+                </div>
+                
+                <div class="console-input-container">
+                    <div class="console-prompt">smartsploit &gt;</div>
+                    <input type="text" 
+                           id="console-input" 
+                           class="console-input" 
+                           placeholder="Enter command..." 
+                           autocomplete="off"
+                           spellcheck="false">
+                    
+                    <!-- Command History Dropdown -->
+                    <div id="command-history" class="command-history"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar Panels -->
+    <div class="sidebar-panel">
+        <!-- Help Panel -->
+        <div class="help-panel">
+            <div class="help-panel-header">
+                <h6 class="mb-0 text-accent">
+                    <i class="fas fa-question-circle"></i>
+                    Quick Help
+                </h6>
+            </div>
+            <div class="help-panel-body">
+                <div class="help-command">
+                    <span class="help-command-name">help</span>
+                    <span class="help-command-desc">Show all commands</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">use</span>
+                    <span class="help-command-desc">Select a module</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">show</span>
+                    <span class="help-command-desc">Display information</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">set</span>
+                    <span class="help-command-desc">Set option value</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">run</span>
+                    <span class="help-command-desc">Execute module</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">back</span>
+                    <span class="help-command-desc">Return to main</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">search</span>
+                    <span class="help-command-desc">Find modules</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">info</span>
+                    <span class="help-command-desc">Show module info</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">sessions</span>
+                    <span class="help-command-desc">List sessions</span>
+                </div>
+                <div class="help-command">
+                    <span class="help-command-name">exit</span>
+                    <span class="help-command-desc">Exit console</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="quick-actions-header">
+                <h6 class="mb-0 text-accent">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="quick-actions-body">
+                <button class="btn btn-sm quick-action-btn" data-command="show exploits">
+                    <i class="fas fa-list"></i> List Exploits
+                </button>
+                <button class="btn btn-sm quick-action-btn" data-command="show auxiliary">
+                    <i class="fas fa-search"></i> List Auxiliary
+                </button>
+                <button class="btn btn-sm quick-action-btn" data-command="show sessions">
+                    <i class="fas fa-terminal"></i> Show Sessions
+                </button>
+                <button class="btn btn-sm quick-action-btn" data-command="use exploit/reentrancy/classic">
+                    <i class="fas fa-bomb"></i> Use Reentrancy
+                </button>
+                <button class="btn btn-sm quick-action-btn" data-command="use auxiliary/scanner/vulnerability">
+                    <i class="fas fa-radar"></i> Vulnerability Scan
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <div class="status-panel-header">
+                <h6 class="mb-0 text-accent">
+                    <i class="fas fa-info-circle"></i>
+                    Status
+                </h6>
+            </div>
+            <div class="status-panel-body">
+                <div class="status-item">
+                    <span class="status-label">Current Module:</span>
+                    <span class="status-value" id="current-module">None</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Active Sessions:</span>
+                    <span class="status-value" id="active-sessions">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Network:</span>
+                    <span class="status-value" id="current-network">mainnet</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Commands Run:</span>
+                    <span class="status-value" id="commands-count">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class SmartSploitConsole {
+    constructor() {
+        this.commandHistory = [];
+        this.historyIndex = -1;
+        this.currentModule = null;
+        this.commandCount = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.loadCommandHistory();
+        this.focusInput();
+    }
+    
+    setupEventListeners() {
+        const input = document.getElementById('console-input');
+        
+        // Command input handling
+        input.addEventListener('keydown', this.handleKeyDown.bind(this));
+        input.addEventListener('input', this.handleInput.bind(this));
+        
+        // Clear console
+        document.getElementById('clear-console').addEventListener('click', () => {
+            this.clearConsole();
+        });
+        
+        // Save session
+        document.getElementById('save-session').addEventListener('click', () => {
+            this.saveSession();
+        });
+        
+        // Quick action buttons
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const command = btn.dataset.command;
+                this.executeCommand(command);
+            });
+        });
+        
+        // Auto-scroll console
+        this.observeConsoleOutput();
+    }
+    
+    handleKeyDown(event) {
+        const input = event.target;
+        
+        switch (event.key) {
+            case 'Enter':
+                event.preventDefault();
+                const command = input.value.trim();
+                if (command) {
+                    this.executeCommand(command);
+                    input.value = '';
+                    this.historyIndex = -1;
+                }
+                break;
+                
+            case 'ArrowUp':
+                event.preventDefault();
+                this.navigateHistory(-1, input);
+                break;
+                
+            case 'ArrowDown':
+                event.preventDefault();
+                this.navigateHistory(1, input);
+                break;
+                
+            case 'Tab':
+                event.preventDefault();
+                this.handleTabCompletion(input);
+                break;
+                
+            case 'Escape':
+                input.value = '';
+                this.hideHistoryDropdown();
+                break;
+        }
+    }
+    
+    handleInput(event) {
+        const input = event.target;
+        const value = input.value;
+        
+        if (value.length > 0) {
+            this.showCommandSuggestions(value);
+        } else {
+            this.hideHistoryDropdown();
+        }
+    }
+    
+    navigateHistory(direction, input) {
+        if (this.commandHistory.length === 0) return;
+        
+        this.historyIndex += direction;
+        
+        if (this.historyIndex < 0) {
+            this.historyIndex = -1;
+            input.value = '';
+        } else if (this.historyIndex >= this.commandHistory.length) {
+            this.historyIndex = this.commandHistory.length - 1;
+        }
+        
+        if (this.historyIndex >= 0) {
+            input.value = this.commandHistory[this.historyIndex];
+        }
+    }
+    
+    handleTabCompletion(input) {
+        const value = input.value;
+        const parts = value.split(' ');
+        const lastPart = parts[parts.length - 1];
+        
+        // Simple tab completion for common commands
+        const completions = this.getCompletions(parts);
+        
+        if (completions.length === 1) {
+            parts[parts.length - 1] = completions[0];
+            input.value = parts.join(' ');
+        } else if (completions.length > 1) {
+            this.addOutput(`\nPossible completions: ${completions.join(', ')}`, 'console-output-info');
+            this.addPrompt();
+        }
+    }
+    
+    getCompletions(parts) {
+        const commands = ['help', 'use', 'show', 'set', 'run', 'back', 'search', 'info', 'sessions', 'exit'];
+        const showOptions = ['exploits', 'auxiliary', 'payloads', 'options', 'sessions'];
+        
+        if (parts.length === 1) {
+            return commands.filter(cmd => cmd.startsWith(parts[0]));
+        }
+        
+        if (parts.length === 2 && parts[0] === 'show') {
+            return showOptions.filter(opt => opt.startsWith(parts[1]));
+        }
+        
+        return [];
+    }
+    
+    showCommandSuggestions(input) {
+        const matching = this.commandHistory.filter(cmd => 
+            cmd.toLowerCase().includes(input.toLowerCase())
+        ).slice(0, 5);
+        
+        const dropdown = document.getElementById('command-history');
+        
+        if (matching.length > 0) {
+            dropdown.innerHTML = matching.map(cmd => 
+                `<div class="history-item" data-command="${cmd}">${cmd}</div>`
+            ).join('');
+            
+            dropdown.style.display = 'block';
+            
+            // Add click handlers
+            dropdown.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const command = item.dataset.command;
+                    document.getElementById('console-input').value = command;
+                    this.hideHistoryDropdown();
+                    this.focusInput();
+                });
+            });
+        } else {
+            this.hideHistoryDropdown();
+        }
+    }
+    
+    hideHistoryDropdown() {
+        document.getElementById('command-history').style.display = 'none';
+    }
+    
+    async executeCommand(command) {
+        // Add command to history
+        if (!this.commandHistory.includes(command)) {
+            this.commandHistory.unshift(command);
+            if (this.commandHistory.length > 50) {
+                this.commandHistory.pop();
+            }
+            this.saveCommandHistory();
+        }
+        
+        // Update command count
+        this.commandCount++;
+        document.getElementById('commands-count').textContent = this.commandCount;
+        
+        // Display command in console
+        this.addOutput(`smartsploit > ${command}`, 'console-prompt');
+        
+        // Hide suggestions
+        this.hideHistoryDropdown();
+        
+        // Handle local commands
+        if (this.handleLocalCommand(command)) {
+            return;
+        }
+        
+        // Send to server
+        try {
+            const response = await fetch('/api/console_command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.output) {
+                data.output.forEach(line => {
+                    this.addOutput(line, this.getOutputClass(line));
+                });
+                
+                // Update status if module was selected
+                this.updateStatus(command, data.output);
+            } else {
+                this.addOutput('Command execution failed', 'console-output-error');
+            }
+        } catch (error) {
+            this.addOutput('Network error executing command', 'console-output-error');
+        }
+        
+        this.addPrompt();
+        this.scrollToBottom();
+    }
+    
+    handleLocalCommand(command) {
+        const parts = command.toLowerCase().split(' ');
+        const cmd = parts[0];
+        
+        switch (cmd) {
+            case 'clear':
+                this.clearConsole();
+                return true;
+                
+            case 'history':
+                this.showHistory();
+                return true;
+                
+            case 'status':
+                this.showStatus();
+                return true;
+                
+            default:
+                return false;
+        }
+    }
+    
+    updateStatus(command, output) {
+        const parts = command.split(' ');
+        
+        if (parts[0] === 'use' && parts.length > 1) {
+            // Check if command was successful
+            const success = output.some(line => line.includes('[+] Using module'));
+            if (success) {
+                this.currentModule = parts[1];
+                document.getElementById('current-module').textContent = parts[1];
+            }
+        }
+        
+        if (parts[0] === 'back') {
+            this.currentModule = null;
+            document.getElementById('current-module').textContent = 'None';
+        }
+    }
+    
+    getOutputClass(line) {
+        if (line.startsWith('[+]')) return 'console-output-success';
+        if (line.startsWith('[-]')) return 'console-output-error';
+        if (line.startsWith('[*]')) return 'console-output-info';
+        if (line.startsWith('[!]')) return 'console-output-warning';
+        return '';
+    }
+    
+    addOutput(text, className = '') {
+        const output = document.getElementById('console-output');
+        const line = document.createElement('div');
+        line.className = `console-line ${className}`;
+        line.textContent = text;
+        
+        output.appendChild(line);
+        
+        // Limit output lines
+        while (output.children.length > 1000) {
+            output.removeChild(output.firstChild);
+        }
+    }
+    
+    addPrompt() {
+        const moduleName = this.currentModule || '';
+        const promptText = moduleName ? 
+            `smartsploit ${moduleName} >` : 
+            'smartsploit >';
+        
+        // Update the visible prompt
+        document.querySelector('.console-prompt').textContent = promptText + ' ';
+    }
+    
+    clearConsole() {
+        const output = document.getElementById('console-output');
+        output.innerHTML = '';
+        this.addOutput('Console cleared', 'console-output-info');
+        this.addPrompt();
+        this.focusInput();
+    }
+    
+    showHistory() {
+        this.addOutput('\nCommand History:', 'console-output-info');
+        this.commandHistory.slice(0, 10).forEach((cmd, index) => {
+            this.addOutput(`${index + 1}. ${cmd}`, '');
+        });
+    }
+    
+    showStatus() {
+        this.addOutput('\nFramework Status:', 'console-output-info');
+        this.addOutput(`Current Module: ${this.currentModule || 'None'}`, '');
+        this.addOutput(`Commands Executed: ${this.commandCount}`, '');
+        this.addOutput(`History Length: ${this.commandHistory.length}`, '');
+    }
+    
+    saveSession() {
+        const output = document.getElementById('console-output');
+        const content = Array.from(output.children)
+            .map(line => line.textContent)
+            .join('\n');
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `smartsploit_session_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.addOutput('Session saved to file', 'console-output-success');
+    }
+    
+    focusInput() {
+        document.getElementById('console-input').focus();
+    }
+    
+    scrollToBottom() {
+        const consoleBody = document.getElementById('console-body');
+        consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+    
+    observeConsoleOutput() {
+        const output = document.getElementById('console-output');
+        const observer = new MutationObserver(() => {
+            this.scrollToBottom();
+        });
+        
+        observer.observe(output, { childList: true });
+    }
+    
+    loadCommandHistory() {
+        try {
+            const saved = localStorage.getItem('smartsploit_command_history');
+            if (saved) {
+                this.commandHistory = JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('Error loading command history:', error);
+        }
+    }
+    
+    saveCommandHistory() {
+        try {
+            localStorage.setItem('smartsploit_command_history', JSON.stringify(this.commandHistory));
+        } catch (error) {
+            console.error('Error saving command history:', error);
+        }
+    }
+}
+
+// Initialize console when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.smartsploitConsole = new SmartSploitConsole();
+    
+    // Update active sessions periodically
+    setInterval(async () => {
+        try {
+            const response = await fetch('/api/sessions');
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('active-sessions').textContent = data.sessions.length;
+            }
+        } catch (error) {
+            // Silently handle error
+        }
+    }, 10000);
+});
+</script>
+{% endblock %}

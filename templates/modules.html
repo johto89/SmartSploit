@@ -1,0 +1,768 @@
+{% extends "base.html" %}
+
+{% block title %}Exploit Modules - SmartSploit Framework{% endblock %}
+
+{% block page_title %}Exploit Modules{% endblock %}
+{% block page_subtitle %}Browse and manage exploitation modules{% endblock %}
+
+{% block head %}
+<style>
+.module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.module-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.module-card:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+}
+
+.module-card.selected {
+    border-color: var(--accent-cyan);
+    box-shadow: var(--shadow-glow);
+}
+
+.module-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+}
+
+.module-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.module-category {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.module-body {
+    padding: 1.5rem;
+}
+
+.module-description {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.module-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.module-severity {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.module-severity.high {
+    background: rgba(234, 67, 53, 0.2);
+    color: var(--status-error);
+    border: 1px solid rgba(234, 67, 53, 0.3);
+}
+
+.module-severity.medium {
+    background: rgba(255, 187, 51, 0.2);
+    color: var(--status-warning);
+    border: 1px solid rgba(255, 187, 51, 0.3);
+}
+
+.module-severity.low {
+    background: rgba(52, 168, 83, 0.2);
+    color: var(--status-success);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+}
+
+.module-reliability {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.module-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.module-filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.filter-tab.active,
+.filter-tab:hover {
+    background: var(--accent-cyan);
+    color: white;
+    border-color: var(--accent-cyan);
+}
+
+.module-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.module-stat {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+}
+
+.module-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 0.25rem;
+}
+
+.module-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.module-info-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--bg-card);
+    border-left: 1px solid var(--border-primary);
+    z-index: 1000;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+}
+
+.module-info-panel.open {
+    right: 0;
+}
+
+.module-info-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.module-info-content {
+    padding: 1.5rem;
+}
+
+.close-panel {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.options-form {
+    margin-top: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.required-label::after {
+    content: " *";
+    color: var(--status-error);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Module Statistics -->
+<div class="module-stats fade-in">
+    <div class="module-stat">
+        <div class="module-stat-value">{{ modules|length }}</div>
+        <div class="module-stat-label">Total Modules</div>
+    </div>
+    <div class="module-stat">
+        <div class="module-stat-value">{{ modules|selectattr('severity', 'equalto', 'high')|list|length }}</div>
+        <div class="module-stat-label">High Severity</div>
+    </div>
+    <div class="module-stat">
+        <div class="module-stat-value">{{ modules|selectattr('category', 'equalto', 'exploit')|list|length }}</div>
+        <div class="module-stat-label">Exploits</div>
+    </div>
+    <div class="module-stat">
+        <div class="module-stat-value">{{ modules|selectattr('category', 'equalto', 'auxiliary')|list|length }}</div>
+        <div class="module-stat-label">Auxiliary</div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="module-filter-bar fade-in">
+    <!-- Category Tabs -->
+    <div class="filter-tabs">
+        <a href="/modules" class="filter-tab {{ 'active' if current_type == 'exploit' else '' }}">
+            <i class="fas fa-bomb"></i> Exploits
+        </a>
+        <a href="/modules?type=auxiliary" class="filter-tab {{ 'active' if current_type == 'auxiliary' else '' }}">
+            <i class="fas fa-search"></i> Auxiliary
+        </a>
+        <a href="/modules?type=payload" class="filter-tab {{ 'active' if current_type == 'payload' else '' }}">
+            <i class="fas fa-code"></i> Payloads
+        </a>
+        <a href="/modules?type=post" class="filter-tab {{ 'active' if current_type == 'post' else '' }}">
+            <i class="fas fa-cogs"></i> Post-Exploitation
+        </a>
+    </div>
+    
+    <!-- Search and Filters -->
+    <div class="filter-row">
+        <div class="filter-group">
+            <label class="form-label">Search:</label>
+            <input type="text" id="module-search" class="form-control" placeholder="Search modules..." style="width: 200px;">
+        </div>
+        
+        <div class="filter-group">
+            <label class="form-label">Severity:</label>
+            <select id="severity-filter" class="form-select" style="width: 120px;">
+                <option value="">All</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="form-label">Reliability:</label>
+            <select id="reliability-filter" class="form-select" style="width: 120px;">
+                <option value="">All</option>
+                <option value="0.8">≥ 80%</option>
+                <option value="0.6">≥ 60%</option>
+                <option value="0.4">≥ 40%</option>
+            </select>
+        </div>
+        
+        <div class="filter-group ml-auto">
+            <button id="clear-filters" class="btn">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Module Grid -->
+<div class="module-grid fade-in" id="module-grid">
+    {% for module in modules %}
+    <div class="module-card" 
+         data-module-path="{{ module.path }}"
+         data-severity="{{ module.severity }}"
+         data-reliability="{{ module.reliability }}"
+         data-category="{{ module.category }}">
+        
+        <div class="module-header">
+            <div class="module-title">{{ module.name }}</div>
+            <div class="module-category">
+                <i class="fas fa-{{ 'bomb' if module.category == 'exploit' else 'search' if module.category == 'auxiliary' else 'code' }}"></i>
+                {{ module.category }}/{{ module.subcategory or 'general' }}
+            </div>
+        </div>
+        
+        <div class="module-body">
+            <div class="module-description">
+                {{ module.description }}
+            </div>
+            
+            <div class="module-meta">
+                <span class="module-severity {{ module.severity }}">{{ module.severity }}</span>
+                <div class="module-reliability">
+                    <i class="fas fa-chart-line"></i>
+                    {{ (module.reliability * 100)|round|int }}%
+                </div>
+            </div>
+            
+            <div class="module-actions">
+                <button class="btn btn-primary btn-sm use-module-btn" data-module="{{ module.path }}">
+                    <i class="fas fa-play"></i> Use Module
+                </button>
+                <button class="btn btn-sm module-info-btn" data-module="{{ module.path }}">
+                    <i class="fas fa-info-circle"></i> Info
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- No Results Message -->
+<div id="no-results" class="text-center text-muted p-4" style="display: none;">
+    <i class="fas fa-search fa-3x mb-3" style="opacity: 0.3;"></i>
+    <p class="mb-1">No modules found</p>
+    <p class="small">Try adjusting your search or filter criteria</p>
+</div>
+
+<!-- Module Info Panel -->
+<div id="module-info-panel" class="module-info-panel">
+    <div class="module-info-header">
+        <h4 id="panel-title">Module Information</h4>
+        <button class="close-panel" onclick="closeInfoPanel()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="module-info-content" id="panel-content">
+        <div class="text-center text-muted">
+            <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+            <p>Loading module information...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay for mobile -->
+<div id="panel-overlay" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closeInfoPanel()"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class ModuleManager {
+    constructor() {
+        this.selectedModule = null;
+        this.modules = {{ modules|tojson }};
+        this.filteredModules = [...this.modules];
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.setupFilters();
+    }
+    
+    setupEventListeners() {
+        // Use module buttons
+        document.querySelectorAll('.use-module-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const modulePath = btn.dataset.module;
+                this.useModule(modulePath);
+            });
+        });
+        
+        // Module info buttons
+        document.querySelectorAll('.module-info-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const modulePath = btn.dataset.module;
+                this.showModuleInfo(modulePath);
+            });
+        });
+        
+        // Module card clicks
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const modulePath = card.dataset.modulePath;
+                this.showModuleInfo(modulePath);
+            });
+        });
+        
+        // Clear filters
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            this.clearFilters();
+        });
+    }
+    
+    setupFilters() {
+        const searchInput = document.getElementById('module-search');
+        const severityFilter = document.getElementById('severity-filter');
+        const reliabilityFilter = document.getElementById('reliability-filter');
+        
+        [searchInput, severityFilter, reliabilityFilter].forEach(element => {
+            element.addEventListener('input', () => this.applyFilters());
+        });
+    }
+    
+    applyFilters() {
+        const searchTerm = document.getElementById('module-search').value.toLowerCase();
+        const severityFilter = document.getElementById('severity-filter').value;
+        const reliabilityFilter = parseFloat(document.getElementById('reliability-filter').value) || 0;
+        
+        const cards = document.querySelectorAll('.module-card');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const moduleName = card.querySelector('.module-title').textContent.toLowerCase();
+            const moduleDesc = card.querySelector('.module-description').textContent.toLowerCase();
+            const severity = card.dataset.severity;
+            const reliability = parseFloat(card.dataset.reliability);
+            
+            const matchesSearch = !searchTerm || 
+                moduleName.includes(searchTerm) || 
+                moduleDesc.includes(searchTerm);
+            
+            const matchesSeverity = !severityFilter || severity === severityFilter;
+            const matchesReliability = reliability >= reliabilityFilter;
+            
+            const isVisible = matchesSearch && matchesSeverity && matchesReliability;
+            
+            card.style.display = isVisible ? 'block' : 'none';
+            if (isVisible) visibleCount++;
+        });
+        
+        // Show/hide no results message
+        const noResults = document.getElementById('no-results');
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+    
+    clearFilters() {
+        document.getElementById('module-search').value = '';
+        document.getElementById('severity-filter').value = '';
+        document.getElementById('reliability-filter').value = '';
+        this.applyFilters();
+    }
+    
+    async useModule(modulePath) {
+        try {
+            const response = await fetch('/api/use_module', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ module_path: modulePath })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.SmartSploitUtils.showNotification(`Module ${modulePath} loaded successfully`, 'success');
+                this.selectedModule = modulePath;
+                this.showModuleInfo(modulePath, data);
+                
+                // Update UI to show selected module
+                document.querySelectorAll('.module-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                document.querySelector(`[data-module-path="${modulePath}"]`).classList.add('selected');
+            } else {
+                window.SmartSploitUtils.showNotification(data.message || 'Failed to load module', 'error');
+            }
+        } catch (error) {
+            console.error('Error using module:', error);
+            window.SmartSploitUtils.showNotification('Error loading module', 'error');
+        }
+    }
+    
+    async showModuleInfo(modulePath, existingData = null) {
+        const panel = document.getElementById('module-info-panel');
+        const overlay = document.getElementById('panel-overlay');
+        
+        // Show panel
+        panel.classList.add('open');
+        overlay.classList.remove('d-none');
+        
+        if (existingData) {
+            this.renderModuleInfo(existingData);
+            return;
+        }
+        
+        try {
+            // Show loading
+            document.getElementById('panel-content').innerHTML = `
+                <div class="text-center text-muted">
+                    <div class="spinner mb-2"></div>
+                    <p>Loading module information...</p>
+                </div>
+            `;
+            
+            const response = await fetch('/api/use_module', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ module_path: modulePath })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderModuleInfo(data);
+            } else {
+                this.renderModuleError(data.message || 'Failed to load module information');
+            }
+        } catch (error) {
+            this.renderModuleError('Network error loading module information');
+        }
+    }
+    
+    renderModuleInfo(data) {
+        const info = data.module_info;
+        const options = data.options || {};
+        const requiredOptions = data.required_options || [];
+        
+        document.getElementById('panel-title').textContent = info.name;
+        document.getElementById('panel-content').innerHTML = `
+            <div class="module-details">
+                <h5>Description</h5>
+                <p class="text-secondary mb-3">${info.description}</p>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Author:</strong><br>
+                        <span class="text-muted">${info.author}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Severity:</strong><br>
+                        <span class="badge badge-${this.getSeverityClass(info.severity)}">${info.severity}</span>
+                    </div>
+                </div>
+                
+                ${info.references && info.references.length > 0 ? `
+                    <h6>References</h6>
+                    <ul class="small text-muted mb-3">
+                        ${info.references.map(ref => `<li>${ref}</li>`).join('')}
+                    </ul>
+                ` : ''}
+                
+                ${info.targets && info.targets.length > 0 ? `
+                    <h6>Target Types</h6>
+                    <ul class="small text-muted mb-3">
+                        ${info.targets.map(target => `<li>${target}</li>`).join('')}
+                    </ul>
+                ` : ''}
+                
+                <div class="options-form">
+                    <h6>Module Options</h6>
+                    <form id="module-options-form">
+                        ${Object.entries(options).map(([key, value]) => `
+                            <div class="form-group">
+                                <label class="form-label ${requiredOptions.includes(key) ? 'required-label' : ''}">${key}</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       name="${key}" 
+                                       value="${value || ''}" 
+                                       placeholder="Enter ${key.toLowerCase()}..."
+                                       ${requiredOptions.includes(key) ? 'required' : ''}>
+                                <small class="form-text text-muted">
+                                    ${this.getOptionDescription(key)}
+                                </small>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Options
+                            </button>
+                            <button type="button" class="btn btn-success" id="run-module-btn">
+                                <i class="fas fa-play"></i> Run Module
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        // Setup form handlers
+        this.setupFormHandlers();
+    }
+    
+    renderModuleError(message) {
+        document.getElementById('panel-content').innerHTML = `
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                ${message}
+            </div>
+        `;
+    }
+    
+    setupFormHandlers() {
+        const form = document.getElementById('module-options-form');
+        const runBtn = document.getElementById('run-module-btn');
+        
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.updateOptions(form);
+            });
+        }
+        
+        if (runBtn) {
+            runBtn.addEventListener('click', async () => {
+                await this.runModule();
+            });
+        }
+    }
+    
+    async updateOptions(form) {
+        const formData = new FormData(form);
+        const options = {};
+        
+        for (let [key, value] of formData.entries()) {
+            options[key] = value;
+        }
+        
+        try {
+            for (let [key, value] of Object.entries(options)) {
+                const response = await fetch('/api/set_option', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to set ${key}`);
+                }
+            }
+            
+            window.SmartSploitUtils.showNotification('Options updated successfully', 'success');
+        } catch (error) {
+            window.SmartSploitUtils.showNotification('Failed to update options', 'error');
+        }
+    }
+    
+    async runModule() {
+        const runBtn = document.getElementById('run-module-btn');
+        const originalText = runBtn.innerHTML;
+        
+        try {
+            // Update button state
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<span class="spinner"></span> Running...';
+            
+            const response = await fetch('/api/run_module', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.SmartSploitUtils.showNotification('Module executed successfully', 'success');
+                this.displayExecutionResults(data);
+            } else {
+                window.SmartSploitUtils.showNotification(data.result.message || 'Module execution failed', 'error');
+            }
+        } catch (error) {
+            window.SmartSploitUtils.showNotification('Execution error', 'error');
+        } finally {
+            runBtn.disabled = false;
+            runBtn.innerHTML = originalText;
+        }
+    }
+    
+    displayExecutionResults(data) {
+        const result = data.result;
+        const executionTime = data.execution_time;
+        
+        // Add results section to panel
+        const resultsHtml = `
+            <div class="execution-results mt-4 p-3" style="background: var(--bg-tertiary); border-radius: 8px;">
+                <h6 class="text-accent">Execution Results</h6>
+                <div class="result-status mb-2">
+                    Status: <span class="badge badge-${result.result === 'success' ? 'success' : 'error'}">${result.result}</span>
+                </div>
+                <div class="result-time mb-2">
+                    Execution Time: <span class="text-muted">${executionTime.toFixed(2)}s</span>
+                </div>
+                ${result.message ? `<div class="result-message mb-2">Message: ${result.message}</div>` : ''}
+                ${result.data ? `
+                    <details class="result-data">
+                        <summary class="text-accent cursor-pointer">Result Data</summary>
+                        <pre class="mt-2 p-2" style="background: var(--bg-primary); border-radius: 4px; font-size: 0.75rem; overflow-x: auto;">${JSON.stringify(result.data, null, 2)}</pre>
+                    </details>
+                ` : ''}
+            </div>
+        `;
+        
+        document.getElementById('panel-content').innerHTML += resultsHtml;
+    }
+    
+    getSeverityClass(severity) {
+        switch (severity.toLowerCase()) {
+            case 'high': return 'error';
+            case 'medium': return 'warning';
+            case 'low': return 'success';
+            default: return 'neutral';
+        }
+    }
+    
+    getOptionDescription(key) {
+        const descriptions = {
+            'TARGET': 'Target contract address (0x...)',
+            'NETWORK': 'Blockchain network (mainnet, sepolia, etc.)',
+            'PRIVATE_KEY': 'Private key for transactions',
+            'AMOUNT': 'Amount in ether',
+            'GAS_LIMIT': 'Maximum gas to use',
+            'GAS_PRICE': 'Gas price in gwei'
+        };
+        
+        return descriptions[key] || `${key} value`;
+    }
+}
+
+// Close info panel function
+function closeInfoPanel() {
+    document.getElementById('module-info-panel').classList.remove('open');
+    document.getElementById('panel-overlay').classList.add('d-none');
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.moduleManager = new ModuleManager();
+});
+</script>
+{% endblock %}

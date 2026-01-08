@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SmartSploit Framework{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Smart Contract Exploitation Framework{% endblock %}
+
+{% block content %}
+<!-- Framework Statistics -->
+<div class="metrics-grid fade-in">
+    <!-- Active Modules -->
+    <div class="metric-card" data-metric="active-modules">
+        <div class="metric-header">
+            <div class="metric-icon info">
+                <i class="fas fa-cube"></i>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.active_modules }}</div>
+        <div class="metric-label">Active Modules</div>
+        <div class="metric-change positive">+12 new this week</div>
+    </div>
+    
+    <!-- Successful Exploits -->
+    <div class="metric-card" data-metric="successful-exploits">
+        <div class="metric-header">
+            <div class="metric-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.successful_exploits }}</div>
+        <div class="metric-label">Successful Exploits</div>
+        <div class="metric-change positive">89% success rate</div>
+    </div>
+    
+    <!-- Active Sessions -->
+    <div class="metric-card" data-metric="active-sessions">
+        <div class="metric-header">
+            <div class="metric-icon warning">
+                <i class="fas fa-play-circle"></i>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.active_sessions }}</div>
+        <div class="metric-label">Active Sessions</div>
+        <div class="metric-change">Avg. duration: 24m</div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="row" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Recent Exploits -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Recent Exploits</h3>
+        </div>
+        <div class="card-body">
+            <div id="recent-exploits">
+                {% if recent_exploits %}
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Target</th>
+                                    <th>Exploit</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exploit in recent_exploits %}
+                                <tr>
+                                    <td>
+                                        <span class="font-mono">{{ exploit.target[:8] }}...</span>
+                                    </td>
+                                    <td>{{ exploit.module }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ 'success' if exploit.success else 'error' }}">
+                                            {{ 'Success' if exploit.success else 'Failed' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">{{ exploit.time }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted p-4">
+                        <i class="fas fa-shield-alt fa-3x mb-3" style="opacity: 0.3;"></i>
+                        <p class="mb-1">No recent exploits</p>
+                        <p class="small">Exploit results will appear here when you run modules</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Target Analysis -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Target Analysis</h3>
+        </div>
+        <div class="card-body">
+            <!-- Risk Distribution -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">High Risk Contracts</span>
+                    <span class="text-error font-weight-bold" data-metric="high-risk-contracts">{{ stats.high_risk_contracts }}</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar error" style="width: {{ (stats.high_risk_contracts / (stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts) * 100) if (stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts) > 0 else 0 }}%"></div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Medium Risk Contracts</span>
+                    <span class="text-warning font-weight-bold" data-metric="medium-risk-contracts">{{ stats.medium_risk_contracts }}</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar warning" style="width: {{ (stats.medium_risk_contracts / (stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts) * 100) if (stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts) > 0 else 0 }}%"></div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Low Risk Contracts</span>
+                    <span class="text-success font-weight-bold" data-metric="low-risk-contracts">{{ stats.low_risk_contracts }}</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar success" style="width: {{ (stats.low_risk_contracts / (stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts) * 100) if (stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts) > 0 else 0 }}%"></div>
+                </div>
+            </div>
+            
+            <!-- Top Vulnerabilities -->
+            <div class="mt-4">
+                <h6 class="text-accent mb-3">Top Vulnerabilities</h6>
+                
+                <div class="vulnerability-item d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">Reentrancy</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress" style="width: 60px; height: 6px;">
+                            <div class="progress-bar error" style="width: 85%"></div>
+                        </div>
+                        <span class="small text-muted">85%</span>
+                    </div>
+                </div>
+                
+                <div class="vulnerability-item d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">Access Control</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress" style="width: 60px; height: 6px;">
+                            <div class="progress-bar warning" style="width: 68%"></div>
+                        </div>
+                        <span class="small text-muted">68%</span>
+                    </div>
+                </div>
+                
+                <div class="vulnerability-item d-flex justify-content-between align-items-center">
+                    <span class="small">Arithmetic Issues</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress" style="width: 60px; height: 6px;">
+                            <div class="progress-bar info" style="width: 45%"></div>
+                        </div>
+                        <span class="small text-muted">45%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Content Grid -->
+<div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <!-- Network Status -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Network Status</h3>
+        </div>
+        <div class="card-body">
+            <div id="network-status">
+                {% for network, status in network_status.items() %}
+                <div class="network-item d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="network-icon" style="width: 32px; height: 32px; background: var(--bg-tertiary); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fab fa-ethereum" style="color: var(--accent-cyan);"></i>
+                        </div>
+                        <div>
+                            <div class="network-name">{{ network.title() }}</div>
+                            <div class="network-url small text-muted">{{ 'mainnet' if network == 'mainnet' else network }}</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-{{ 'success' if status else 'error' }}">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                        {{ 'Online' if status else 'Offline' }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-primary);">
+                <div class="d-flex justify-content-between align-items-center text-muted small">
+                    <span>Ethereum Mainnet</span>
+                    <span>Block: 18,456,789</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Console -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Quick Console</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="console-container" style="border: none; border-radius: 0;">
+                <div class="console-header">
+                    <div class="console-dots">
+                        <div class="console-dot red"></div>
+                        <div class="console-dot yellow"></div>
+                        <div class="console-dot green"></div>
+                    </div>
+                    <span class="console-title">smartsploit</span>
+                </div>
+                <div class="console-body" style="height: 250px;">
+                    <div id="console-output" class="console-output">
+                        <div class="console-line text-accent">SmartSploit Framework v2.1.0</div>
+                        <div class="console-line text-muted">Type 'help' for available commands</div>
+                        <div class="console-line text-success">[+] Framework initialized</div>
+                        <div class="console-line text-info">[*] Ready for exploitation</div>
+                    </div>
+                    <div class="console-input-container">
+                        <span class="console-prompt">smartsploit &gt;</span>
+                        <input type="text" id="console-input" class="console-input" placeholder="Enter command..." autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Section -->
+<div class="row mt-4">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 class="card-title">Vulnerability Distribution</h3>
+        </div>
+        <div class="card-body">
+            <div style="position: relative; height: 300px;">
+                <canvas id="vulnerability-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize dashboard-specific functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any additional dashboard initialization here
+        console.log('SmartSploit Dashboard loaded');
+        
+        // Initialize tooltips or additional UI components
+        const metricCards = document.querySelectorAll('.metric-card');
+        metricCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %}

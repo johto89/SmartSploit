@@ -1,0 +1,851 @@
+{% extends "base.html" %}
+
+{% block title %}Monitoring - SmartSploit Framework{% endblock %}
+
+{% block page_title %}System Monitoring{% endblock %}
+{% block page_subtitle %}Real-time framework performance and security monitoring{% endblock %}
+
+{% block head %}
+<style>
+.monitoring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.monitoring-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+.monitoring-card-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.monitoring-card-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.monitoring-card-body {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.system-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metric-gauge {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.gauge-chart {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem auto;
+    position: relative;
+}
+
+.gauge-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.gauge-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.gauge-description {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.activity-feed {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.success {
+    background: rgba(52, 168, 83, 0.2);
+    color: var(--status-success);
+}
+
+.activity-icon.error {
+    background: rgba(234, 67, 53, 0.2);
+    color: var(--status-error);
+}
+
+.activity-icon.warning {
+    background: rgba(255, 187, 51, 0.2);
+    color: var(--status-warning);
+}
+
+.activity-icon.info {
+    background: rgba(0, 212, 255, 0.2);
+    color: var(--accent-cyan);
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+.activity-details {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.activity-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.log-viewer {
+    background: #000011;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.log-line {
+    margin-bottom: 0.25rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.log-line.error {
+    color: var(--status-error);
+}
+
+.log-line.warning {
+    color: var(--status-warning);
+}
+
+.log-line.success {
+    color: var(--status-success);
+}
+
+.log-line.info {
+    color: var(--accent-cyan);
+}
+
+.network-status-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.network-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+}
+
+.network-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.network-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-cyan);
+    color: white;
+    font-size: 0.75rem;
+}
+
+.network-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.network-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.125rem;
+}
+
+.network-endpoint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.network-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.online {
+    background: var(--status-success);
+    box-shadow: 0 0 4px var(--status-success);
+}
+
+.status-dot.offline {
+    background: var(--status-error);
+}
+
+.vulnerability-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.vulnerability-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+}
+
+.vulnerability-info {
+    flex: 1;
+}
+
+.vulnerability-address {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.vulnerability-details {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.vulnerability-score {
+    text-align: right;
+}
+
+.score-value {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.score-value.high {
+    color: var(--status-error);
+}
+
+.score-value.medium {
+    color: var(--status-warning);
+}
+
+.score-value.low {
+    color: var(--status-success);
+}
+
+.score-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.monitoring-controls {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.controls-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .monitoring-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .system-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Monitoring Controls -->
+<div class="monitoring-controls fade-in">
+    <div class="controls-row">
+        <div class="control-group">
+            <label class="form-label">Refresh Interval:</label>
+            <select class="form-select" id="refresh-interval" style="width: 120px;">
+                <option value="5000">5 seconds</option>
+                <option value="10000" selected>10 seconds</option>
+                <option value="30000">30 seconds</option>
+                <option value="60000">1 minute</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <button class="btn btn-primary" id="refresh-now">
+                <i class="fas fa-sync-alt"></i> Refresh Now
+            </button>
+        </div>
+        
+        <div class="control-group">
+            <button class="btn" id="export-logs">
+                <i class="fas fa-download"></i> Export Logs
+            </button>
+        </div>
+        
+        <div class="control-group">
+            <label class="switch">
+                <input type="checkbox" id="auto-refresh" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="form-label">Auto Refresh</span>
+        </div>
+    </div>
+</div>
+
+<!-- System Metrics -->
+<div class="system-metrics fade-in">
+    <div class="metric-gauge">
+        <div class="gauge-label">Framework Load</div>
+        <div class="gauge-chart">
+            <canvas id="load-gauge" width="120" height="120"></canvas>
+            <div class="gauge-value" id="load-value">{{ ((stats.active_sessions / 10) * 100)|round|int }}%</div>
+        </div>
+        <div class="gauge-description">Active sessions vs capacity</div>
+    </div>
+    
+    <div class="metric-gauge">
+        <div class="gauge-label">Module Efficiency</div>
+        <div class="gauge-chart">
+            <canvas id="efficiency-gauge" width="120" height="120"></canvas>
+            <div class="gauge-value" id="efficiency-value">
+                {% if stats.successful_exploits > 0 %}
+                    {{ ((stats.successful_exploits / (stats.successful_exploits + 10)) * 100)|round|int }}%
+                {% else %}
+                    0%
+                {% endif %}
+            </div>
+        </div>
+        <div class="gauge-description">Success rate over time</div>
+    </div>
+    
+    <div class="metric-gauge">
+        <div class="gauge-label">Network Health</div>
+        <div class="gauge-chart">
+            <canvas id="network-gauge" width="120" height="120"></canvas>
+            <div class="gauge-value" id="network-value">
+                {% set online_count = network_status.values()|select()|list|length %}
+                {% set total_count = network_status|length %}
+                {% if total_count > 0 %}
+                    {{ ((online_count / total_count) * 100)|round|int }}%
+                {% else %}
+                    0%
+                {% endif %}
+            </div>
+        </div>
+        <div class="gauge-description">Connected networks</div>
+    </div>
+    
+    <div class="metric-gauge">
+        <div class="gauge-label">Threat Level</div>
+        <div class="gauge-chart">
+            <canvas id="threat-gauge" width="120" height="120"></canvas>
+            <div class="gauge-value" id="threat-value">
+                {% set high_risk = stats.high_risk_contracts %}
+                {% set total_contracts = stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts %}
+                {% if total_contracts > 0 %}
+                    {{ ((high_risk / total_contracts) * 100)|round|int }}%
+                {% else %}
+                    0%
+                {% endif %}
+            </div>
+        </div>
+        <div class="gauge-description">High-risk contracts detected</div>
+    </div>
+</div>
+
+<!-- Monitoring Dashboard -->
+<div class="monitoring-grid fade-in">
+    <!-- Activity Feed -->
+    <div class="monitoring-card">
+        <div class="monitoring-card-header">
+            <h3 class="monitoring-card-title">
+                <i class="fas fa-bell"></i>
+                Recent Activity
+            </h3>
+            <button class="btn btn-sm" onclick="clearActivityFeed()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="monitoring-card-body">
+            <div class="activity-feed" id="activity-feed">
+                {% for result in recent_results[:10] %}
+                <div class="activity-item">
+                    <div class="activity-icon {{ 'success' if result.result_status == 'success' else 'error' if result.result_status == 'error' else 'warning' }}">
+                        <i class="fas fa-{{ 'check' if result.result_status == 'success' else 'times' if result.result_status == 'error' else 'exclamation' }}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">
+                            Exploit {{ result.result_status.title() }}
+                        </div>
+                        <div class="activity-details">
+                            Session: {{ result.session_id }}
+                            {% if result.execution_time %}
+                            • {{ result.execution_time|round(2) }}s
+                            {% endif %}
+                        </div>
+                        <div class="activity-time">{{ result.created_at.strftime('%H:%M:%S') if result.created_at else 'Unknown' }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if not recent_results %}
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-clock fa-2x mb-2" style="opacity: 0.3;"></i>
+                    <p>No recent activity</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Network Status -->
+    <div class="monitoring-card">
+        <div class="monitoring-card-header">
+            <h3 class="monitoring-card-title">
+                <i class="fas fa-network-wired"></i>
+                Network Status
+            </h3>
+            <span class="badge badge-{{ 'success' if network_status.values()|select()|list|length == network_status|length else 'warning' }}">
+                {{ network_status.values()|select()|list|length }}/{{ network_status|length }} Online
+            </span>
+        </div>
+        <div class="monitoring-card-body">
+            <div class="network-status-grid">
+                {% for network, status in network_status.items() %}
+                <div class="network-item">
+                    <div class="network-info">
+                        <div class="network-icon">
+                            <i class="fab fa-ethereum"></i>
+                        </div>
+                        <div class="network-details">
+                            <div class="network-name">{{ network.title() }}</div>
+                            <div class="network-endpoint">
+                                {% if network == 'mainnet' %}
+                                    mainnet.infura.io
+                                {% elif network == 'sepolia' %}
+                                    sepolia.infura.io
+                                {% else %}
+                                    {{ network }}.rpc.endpoint
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="network-status-indicator">
+                        <div class="status-dot {{ 'online' if status else 'offline' }}"></div>
+                        <span class="text-{{ 'success' if status else 'error' }}">
+                            {{ 'Online' if status else 'Offline' }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Logs -->
+    <div class="monitoring-card">
+        <div class="monitoring-card-header">
+            <h3 class="monitoring-card-title">
+                <i class="fas fa-terminal"></i>
+                System Logs
+            </h3>
+            <button class="btn btn-sm" onclick="clearLogs()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="monitoring-card-body">
+            <div class="log-viewer" id="log-viewer">
+                <div class="log-line info">[{{ current_time.strftime('%H:%M:%S') }}] SmartSploit Framework v2.1.0 initialized</div>
+                <div class="log-line success">[{{ current_time.strftime('%H:%M:%S') }}] Module manager loaded {{ stats.active_modules }} modules</div>
+                <div class="log-line info">[{{ current_time.strftime('%H:%M:%S') }}] Blockchain interface connected to {{ network_status.values()|select()|list|length }} networks</div>
+                {% if recent_results %}
+                {% for result in recent_results[:3] %}
+                <div class="log-line {{ 'success' if result.result_status == 'success' else 'error' }}">
+                    [{{ result.created_at.strftime('%H:%M:%S') if result.created_at else '00:00:00' }}] 
+                    Exploit {{ result.result_status }} - Session {{ result.session_id }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                <div class="log-line info">[{{ current_time.strftime('%H:%M:%S') }}] Monitoring dashboard active</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vulnerability Targets -->
+    <div class="monitoring-card">
+        <div class="monitoring-card-header">
+            <h3 class="monitoring-card-title">
+                <i class="fas fa-bullseye"></i>
+                High-Risk Targets
+            </h3>
+            <span class="badge badge-error">{{ targets|selectattr('vulnerability_score', '>', 0.7)|list|length }}</span>
+        </div>
+        <div class="monitoring-card-body">
+            <div class="vulnerability-list">
+                {% for target in targets[:5] %}
+                {% if target.vulnerability_score > 0.4 %}
+                <div class="vulnerability-item">
+                    <div class="vulnerability-info">
+                        <div class="vulnerability-address">{{ target.address[:8] }}...{{ target.address[-4:] }}</div>
+                        <div class="vulnerability-details">
+                            {{ target.network.title() }} • 
+                            Last scanned: {{ target.last_scanned.strftime('%m/%d %H:%M') if target.last_scanned else 'Never' }}
+                        </div>
+                    </div>
+                    <div class="vulnerability-score">
+                        <div class="score-value {{ 'high' if target.vulnerability_score >= 0.7 else 'medium' if target.vulnerability_score >= 0.4 else 'low' }}">
+                            {{ (target.vulnerability_score * 100)|round|int }}%
+                        </div>
+                        <div class="score-label">Risk</div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                
+                {% if not targets or not targets|selectattr('vulnerability_score', '>', 0.4)|list %}
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-shield-alt fa-2x mb-2" style="opacity: 0.3;"></i>
+                    <p>No high-risk targets detected</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class MonitoringDashboard {
+    constructor() {
+        this.refreshInterval = 10000; // 10 seconds
+        this.autoRefresh = true;
+        this.intervalId = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.initializeGauges();
+        this.startAutoRefresh();
+    }
+    
+    setupEventListeners() {
+        // Refresh interval control
+        document.getElementById('refresh-interval').addEventListener('change', (e) => {
+            this.refreshInterval = parseInt(e.target.value);
+            if (this.autoRefresh) {
+                this.stopAutoRefresh();
+                this.startAutoRefresh();
+            }
+        });
+        
+        // Auto refresh toggle
+        document.getElementById('auto-refresh').addEventListener('change', (e) => {
+            this.autoRefresh = e.target.checked;
+            if (this.autoRefresh) {
+                this.startAutoRefresh();
+            } else {
+                this.stopAutoRefresh();
+            }
+        });
+        
+        // Manual refresh
+        document.getElementById('refresh-now').addEventListener('click', () => {
+            this.refreshData();
+        });
+        
+        // Export logs
+        document.getElementById('export-logs').addEventListener('click', () => {
+            this.exportLogs();
+        });
+    }
+    
+    initializeGauges() {
+        this.createGauge('load-gauge', {{ ((stats.active_sessions / 10) * 100)|round|int }});
+        this.createGauge('efficiency-gauge', {% if stats.successful_exploits > 0 %}{{ ((stats.successful_exploits / (stats.successful_exploits + 10)) * 100)|round|int }}{% else %}0{% endif %});
+        this.createGauge('network-gauge', {% set online_count = network_status.values()|select()|list|length %}{% set total_count = network_status|length %}{% if total_count > 0 %}{{ ((online_count / total_count) * 100)|round|int }}{% else %}0{% endif %});
+        this.createGauge('threat-gauge', {% set high_risk = stats.high_risk_contracts %}{% set total_contracts = stats.high_risk_contracts + stats.medium_risk_contracts + stats.low_risk_contracts %}{% if total_contracts > 0 %}{{ ((high_risk / total_contracts) * 100)|round|int }}{% else %}0{% endif %});
+    }
+    
+    createGauge(canvasId, value) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const centerX = 60;
+        const centerY = 60;
+        const radius = 45;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, 120, 120);
+        
+        // Background circle
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border-primary');
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        
+        // Progress arc
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + (2 * Math.PI * value / 100);
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.strokeStyle = this.getGaugeColor(value);
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    }
+    
+    getGaugeColor(value) {
+        if (value >= 80) return getComputedStyle(document.documentElement).getPropertyValue('--status-error');
+        if (value >= 60) return getComputedStyle(document.documentElement).getPropertyValue('--status-warning');
+        return getComputedStyle(document.documentElement).getPropertyValue('--status-success');
+    }
+    
+    startAutoRefresh() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+        
+        this.intervalId = setInterval(() => {
+            this.refreshData();
+        }, this.refreshInterval);
+    }
+    
+    stopAutoRefresh() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+    
+    async refreshData() {
+        try {
+            // Update stats
+            const statsResponse = await fetch('/api/stats');
+            const statsData = await statsResponse.json();
+            
+            if (statsData.success) {
+                // Update gauge values and redraw
+                const stats = statsData.stats;
+                
+                // Update load gauge
+                const loadValue = Math.round((stats.active_sessions / 10) * 100);
+                document.getElementById('load-value').textContent = loadValue + '%';
+                this.createGauge('load-gauge', loadValue);
+                
+                // Update efficiency gauge  
+                const efficiencyValue = stats.successful_exploits > 0 ? 
+                    Math.round((stats.successful_exploits / (stats.successful_exploits + 10)) * 100) : 0;
+                document.getElementById('efficiency-value').textContent = efficiencyValue + '%';
+                this.createGauge('efficiency-gauge', efficiencyValue);
+            }
+            
+            // Update network status
+            const networkResponse = await fetch('/api/network_status');
+            const networkData = await networkResponse.json();
+            
+            if (networkData.success) {
+                const onlineCount = Object.values(networkData.networks).filter(Boolean).length;
+                const totalCount = Object.keys(networkData.networks).length;
+                const networkValue = totalCount > 0 ? Math.round((onlineCount / totalCount) * 100) : 0;
+                
+                document.getElementById('network-value').textContent = networkValue + '%';
+                this.createGauge('network-gauge', networkValue);
+            }
+            
+            // Add activity log
+            this.addActivityLog('info', 'Data refreshed successfully');
+            
+        } catch (error) {
+            console.error('Error refreshing monitoring data:', error);
+            this.addActivityLog('error', 'Failed to refresh monitoring data');
+        }
+    }
+    
+    addActivityLog(type, message) {
+        const logViewer = document.getElementById('log-viewer');
+        const now = new Date().toTimeString().split(' ')[0];
+        
+        const logLine = document.createElement('div');
+        logLine.className = `log-line ${type}`;
+        logLine.textContent = `[${now}] ${message}`;
+        
+        logViewer.appendChild(logLine);
+        logViewer.scrollTop = logViewer.scrollHeight;
+        
+        // Keep only last 50 log lines
+        while (logViewer.children.length > 50) {
+            logViewer.removeChild(logViewer.firstChild);
+        }
+    }
+    
+    exportLogs() {
+        const logViewer = document.getElementById('log-viewer');
+        const logs = Array.from(logViewer.children).map(line => line.textContent).join('\n');
+        
+        const blob = new Blob([logs], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `smartsploit-logs-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        URL.revokeObjectURL(url);
+        
+        this.addActivityLog('info', 'Logs exported successfully');
+    }
+}
+
+// Utility functions
+function clearActivityFeed() {
+    if (confirm('Clear all activity history?')) {
+        document.getElementById('activity-feed').innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-clock fa-2x mb-2" style="opacity: 0.3;"></i>
+                <p>No recent activity</p>
+            </div>
+        `;
+    }
+}
+
+function clearLogs() {
+    if (confirm('Clear all system logs?')) {
+        document.getElementById('log-viewer').innerHTML = '';
+    }
+}
+
+// Initialize monitoring dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    new MonitoringDashboard();
+});
+
+// Add moment.js alternative for timestamp formatting
+window.moment = function() {
+    return {
+        format: function(format) {
+            const now = new Date();
+            if (format === 'HH:mm:ss') {
+                return now.toTimeString().split(' ')[0];
+            }
+            return now.toISOString();
+        }
+    };
+};
+</script>
+{% endblock %}

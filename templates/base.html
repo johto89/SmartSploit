@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SmartSploit Framework{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2300d4ff'/%3E%3Cpath d='M8 12h16M8 16h16M8 20h12' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <div>
+                <a href="/" class="brand-text">SmartSploit</a>
+                <span class="brand-version">v2.1.0</span>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="/" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    Dashboard
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/modules" class="nav-link {% if request.endpoint == 'main.modules' %}active{% endif %}">
+                    <i class="fas fa-cube nav-icon"></i>
+                    Exploit Modules
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/modules?type=auxiliary" class="nav-link">
+                    <i class="fas fa-search nav-icon"></i>
+                    Auxiliary
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/console" class="nav-link {% if request.endpoint == 'main.console_interface' %}active{% endif %}">
+                    <i class="fas fa-terminal nav-icon"></i>
+                    Console
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/sessions" class="nav-link {% if request.endpoint == 'main.sessions' %}active{% endif %}">
+                    <i class="fas fa-bullseye nav-icon"></i>
+                    Sessions
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/monitoring" class="nav-link {% if request.endpoint == 'main.monitoring' %}active{% endif %}">
+                    <i class="fas fa-chart-line nav-icon"></i>
+                    Monitoring
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/settings" class="nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}">
+                    <i class="fas fa-cog nav-icon"></i>
+                    Settings
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/about" class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}">
+                    <i class="fas fa-info-circle nav-icon"></i>
+                    About
+                </a>
+            </li>
+        </ul>
+        
+        <!-- Network Status -->
+        <div class="sidebar-footer" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; border-top: 1px solid var(--border-primary);">
+            <div class="network-status-mini">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="status-dot" style="width: 8px; height: 8px; background: var(--status-success); border-radius: 50%;"></span>
+                    <span class="small text-muted">Network Status</span>
+                </div>
+                <div class="small text-muted">
+                    Ethereum Mainnet
+                    <span class="text-success">●</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="btn menu-toggle d-md-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p class="text-muted mb-0">{% block page_subtitle %}Smart Contract Exploitation Framework{% endblock %}</p>
+                </div>
+            </div>
+            
+            <div class="header-right d-flex align-items-center gap-3">
+                <!-- Quick Scan -->
+                <div class="quick-scan d-none d-lg-flex align-items-center gap-2">
+                    <input type="text" 
+                           id="scan-address" 
+                           class="form-control" 
+                           placeholder="0x... Contract Address" 
+                           style="width: 200px;">
+                    <button id="quick-scan-btn" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Quick Scan
+                    </button>
+                </div>
+                
+                <!-- Refresh Button -->
+                <button id="refresh-btn" class="btn" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                
+                <!-- User Profile -->
+                <div class="user-profile d-flex align-items-center gap-2">
+                    <div class="user-avatar" style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+                    <div class="user-info d-none d-md-block">
+                        <div class="user-name">Security Researcher</div>
+                        <div class="user-role small text-muted">Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <div class="page-content" style="padding: 2rem;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'error' if category == 'error' else category }} mb-3">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script>
+        // Global JavaScript configuration
+        window.SmartSploitConfig = {
+            apiBaseUrl: '/api',
+            refreshInterval: 30000,
+            theme: 'dark'
+        };
+        
+        // Global utilities
+        window.SmartSploitUtils = {
+            formatAddress: function(address) {
+                if (!address || address.length <= 10) return address;
+                return address.slice(0, 6) + '...' + address.slice(-4);
+            },
+            
+            formatDuration: function(seconds) {
+                if (seconds < 60) return seconds.toFixed(1) + 's';
+                if (seconds < 3600) return (seconds / 60).toFixed(1) + 'm';
+                return (seconds / 3600).toFixed(1) + 'h';
+            },
+            
+            showNotification: function(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `alert alert-${type}`;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
+                    min-width: 300px;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.style.animation = 'fadeOut 0.3s ease';
+                        setTimeout(() => {
+                            if (notification.parentNode) {
+                                notification.parentNode.removeChild(notification);
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            }
+        };
+    </script>
+    
+    {% block scripts %}{% endblock %}
+    
+    <!-- Page-specific scripts -->
+    {% if request.endpoint == 'main.dashboard' %}
+        <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% endif %}
+    
+    <!-- Add keyframe animations -->
+    <style>
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+    </style>
+</body>
+</html>

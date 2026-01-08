@@ -1,0 +1,1302 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - SmartSploit Framework{% endblock %}
+
+{% block page_title %}Settings{% endblock %}
+{% block page_subtitle %}Configure framework options and preferences{% endblock %}
+
+{% block head %}
+<style>
+.settings-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+}
+
+.settings-nav {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    height: fit-content;
+}
+
+.settings-nav-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.settings-nav-title {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-accent);
+}
+
+.settings-nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.settings-nav-item {
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.settings-nav-item:last-child {
+    border-bottom: none;
+}
+
+.settings-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.settings-nav-link:hover,
+.settings-nav-link.active {
+    background: var(--bg-hover);
+    color: var(--text-accent);
+}
+
+.settings-nav-icon {
+    width: 18px;
+    text-align: center;
+}
+
+.settings-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.settings-section {
+    display: none;
+}
+
+.settings-section.active {
+    display: block;
+}
+
+.settings-header {
+    background: var(--bg-tertiary);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.settings-title {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.settings-subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.settings-body {
+    padding: 2rem;
+}
+
+.setting-group {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.setting-group:last-child {
+    border-bottom: none;
+}
+
+.setting-group-title {
+    margin: 0 0 1rem 0;
+    color: var(--text-accent);
+    font-size: 1.125rem;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-info {
+    flex: 1;
+    margin-right: 2rem;
+}
+
+.setting-label {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.setting-description {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.setting-control {
+    flex-shrink: 0;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-tertiary);
+    transition: 0.3s;
+    border-radius: 24px;
+    border: 1px solid var(--border-primary);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-muted);
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+    background-color: white;
+}
+
+.network-config {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.network-config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.network-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.network-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.network-status.online {
+    background: rgba(52, 168, 83, 0.2);
+    color: var(--status-success);
+}
+
+.network-status.offline {
+    background: rgba(234, 67, 53, 0.2);
+    color: var(--status-error);
+}
+
+.network-config-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.api-key-input {
+    position: relative;
+}
+
+.api-key-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.danger-zone {
+    background: rgba(234, 67, 53, 0.1);
+    border: 1px solid rgba(234, 67, 53, 0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.danger-zone-title {
+    color: var(--status-error);
+    margin: 0 0 1rem 0;
+    font-weight: 600;
+}
+
+.settings-actions {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+    display: flex;
+    gap: 1rem;
+}
+
+.export-import-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.export-import-box {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.about-section {
+    text-align: center;
+    padding: 2rem;
+}
+
+.about-logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    font-size: 2rem;
+    color: white;
+}
+
+.about-version {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.about-description {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.about-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.about-stat {
+    text-align: center;
+}
+
+.about-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 0.25rem;
+}
+
+.about-stat-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .settings-layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .settings-nav {
+        order: 2;
+    }
+    
+    .network-config-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-import-section {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-layout fade-in">
+    <!-- Settings Navigation -->
+    <div class="settings-nav">
+        <div class="settings-nav-header">
+            <h4 class="settings-nav-title">
+                <i class="fas fa-cog"></i>
+                Configuration
+            </h4>
+        </div>
+        <ul class="settings-nav-menu">
+            <li class="settings-nav-item">
+                <a href="#general" class="settings-nav-link active" data-section="general">
+                    <i class="fas fa-sliders-h settings-nav-icon"></i>
+                    General
+                </a>
+            </li>
+            <li class="settings-nav-item">
+                <a href="#network" class="settings-nav-link" data-section="network">
+                    <i class="fas fa-network-wired settings-nav-icon"></i>
+                    Network
+                </a>
+            </li>
+            <li class="settings-nav-item">
+                <a href="#security" class="settings-nav-link" data-section="security">
+                    <i class="fas fa-shield-alt settings-nav-icon"></i>
+                    Security
+                </a>
+            </li>
+            <li class="settings-nav-item">
+                <a href="#interface" class="settings-nav-link" data-section="interface">
+                    <i class="fas fa-palette settings-nav-icon"></i>
+                    Interface
+                </a>
+            </li>
+            <li class="settings-nav-item">
+                <a href="#advanced" class="settings-nav-link" data-section="advanced">
+                    <i class="fas fa-code settings-nav-icon"></i>
+                    Advanced
+                </a>
+            </li>
+            <li class="settings-nav-item">
+                <a href="#backup" class="settings-nav-link" data-section="backup">
+                    <i class="fas fa-download settings-nav-icon"></i>
+                    Backup
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Settings Content -->
+    <div class="settings-content">
+        <!-- General Settings -->
+        <div id="general-section" class="settings-section active">
+            <div class="settings-header">
+                <h2 class="settings-title">General Settings</h2>
+                <p class="settings-subtitle">Configure basic framework options and behavior</p>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Framework Configuration</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Verbose Mode</h4>
+                            <p class="setting-description">Enable detailed output and debugging information</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="verbose-mode" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Auto-Save Sessions</h4>
+                            <p class="setting-description">Automatically save exploit sessions and results</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="auto-save">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Command History Size</h4>
+                            <p class="setting-description">Maximum number of commands to remember</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-select" id="history-size" style="width: 120px;">
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                                <option value="500">500</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Default Network</h4>
+                            <p class="setting-description">Primary blockchain network for exploits</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-select" id="default-network" style="width: 150px;">
+                                <option value="mainnet" selected>Mainnet</option>
+                                <option value="sepolia">Sepolia</option>
+                                <option value="polygon">Polygon</option>
+                                <option value="bsc">BSC</option>
+                                <option value="local">Local</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Performance</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Concurrent Scans</h4>
+                            <p class="setting-description">Maximum number of simultaneous vulnerability scans</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" class="form-control" id="concurrent-scans" value="5" min="1" max="20" style="width: 80px;">
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Request Timeout</h4>
+                            <p class="setting-description">Network request timeout in seconds</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" class="form-control" id="request-timeout" value="30" min="5" max="300" style="width: 80px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Network Settings -->
+        <div id="network-section" class="settings-section">
+            <div class="settings-header">
+                <h2 class="settings-title">Network Configuration</h2>
+                <p class="settings-subtitle">Configure blockchain networks and RPC endpoints</p>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Blockchain Networks</h3>
+                    
+                    <!-- Mainnet Config -->
+                    <div class="network-config">
+                        <div class="network-config-header">
+                            <span class="network-name">Ethereum Mainnet</span>
+                            <span class="network-status online">Online</span>
+                        </div>
+                        <div class="network-config-body">
+                            <div class="form-group">
+                                <label class="form-label">RPC URL</label>
+                                <input type="url" class="form-control" value="https://mainnet.infura.io/v3/" placeholder="RPC endpoint">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API Key</label>
+                                <div class="api-key-input">
+                                    <input type="password" class="form-control" placeholder="Your API key">
+                                    <button type="button" class="api-key-toggle">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sepolia Config -->
+                    <div class="network-config">
+                        <div class="network-config-header">
+                            <span class="network-name">Sepolia Testnet</span>
+                            <span class="network-status online">Online</span>
+                        </div>
+                        <div class="network-config-body">
+                            <div class="form-group">
+                                <label class="form-label">RPC URL</label>
+                                <input type="url" class="form-control" value="https://sepolia.infura.io/v3/" placeholder="RPC endpoint">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API Key</label>
+                                <div class="api-key-input">
+                                    <input type="password" class="form-control" placeholder="Your API key">
+                                    <button type="button" class="api-key-toggle">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Network -->
+                    <div class="network-config">
+                        <div class="network-config-header">
+                            <span class="network-name">Custom Network</span>
+                            <span class="network-status offline">Offline</span>
+                        </div>
+                        <div class="network-config-body">
+                            <div class="form-group">
+                                <label class="form-label">Network Name</label>
+                                <input type="text" class="form-control" placeholder="Custom network name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">RPC URL</label>
+                                <input type="url" class="form-control" placeholder="Custom RPC endpoint">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Settings -->
+        <div id="security-section" class="settings-section">
+            <div class="settings-header">
+                <h2 class="settings-title">Security Settings</h2>
+                <p class="settings-subtitle">Configure security options and vulnerability detection</p>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Exploitation Safety</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Safe Mode</h4>
+                            <p class="setting-description">Prevent execution of potentially dangerous operations</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="safe-mode" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Confirmation Prompts</h4>
+                            <p class="setting-description">Require confirmation before running exploits</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="confirm-exploits" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Maximum Gas Limit</h4>
+                            <p class="setting-description">Safety limit for transaction gas usage</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" class="form-control" value="1000000" min="21000" style="width: 120px;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Machine Learning</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">ML Detection</h4>
+                            <p class="setting-description">Use machine learning for vulnerability detection</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="ml-detection" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Auto-Train Models</h4>
+                            <p class="setting-description">Automatically retrain models with new data</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="auto-train">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Confidence Threshold</h4>
+                            <p class="setting-description">Minimum confidence for ML vulnerability detection</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="range" class="form-range" min="0" max="100" value="70" id="ml-threshold" style="width: 120px;">
+                            <span class="text-muted small">70%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Interface Settings -->
+        <div id="interface-section" class="settings-section">
+            <div class="settings-header">
+                <h2 class="settings-title">Interface Settings</h2>
+                <p class="settings-subtitle">Customize the user interface and display options</p>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Appearance</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Theme</h4>
+                            <p class="setting-description">Choose your preferred color scheme</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-select" style="width: 120px;">
+                                <option value="dark" selected>Dark</option>
+                                <option value="light">Light</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Console Font Size</h4>
+                            <p class="setting-description">Adjust the terminal font size</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-select" style="width: 100px;">
+                                <option value="12">12px</option>
+                                <option value="14" selected>14px</option>
+                                <option value="16">16px</option>
+                                <option value="18">18px</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Animations</h4>
+                            <p class="setting-description">Enable UI animations and transitions</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="animations" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Dashboard</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Auto Refresh</h4>
+                            <p class="setting-description">Automatically refresh dashboard data</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="auto-refresh" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Refresh Interval</h4>
+                            <p class="setting-description">How often to update dashboard (seconds)</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" class="form-control" value="30" min="5" max="300" style="width: 80px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Advanced Settings -->
+        <div id="advanced-section" class="settings-section">
+            <div class="settings-header">
+                <h2 class="settings-title">Advanced Settings</h2>
+                <p class="settings-subtitle">Advanced configuration for expert users</p>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Development</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Debug Mode</h4>
+                            <p class="setting-description">Enable debug logging and development features</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="debug-mode">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">API Logging</h4>
+                            <p class="setting-description">Log all API requests and responses</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="api-logging">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="danger-zone">
+                    <h4 class="danger-zone-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Danger Zone
+                    </h4>
+                    <p class="mb-3 text-muted">These actions are irreversible and may cause data loss.</p>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-error btn-sm" id="reset-settings">
+                            <i class="fas fa-undo"></i>
+                            Reset Settings
+                        </button>
+                        <button class="btn btn-error btn-sm" id="clear-data">
+                            <i class="fas fa-trash"></i>
+                            Clear All Data
+                        </button>
+                        <button class="btn btn-error btn-sm" id="factory-reset">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Factory Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Backup Settings -->
+        <div id="backup-section" class="settings-section">
+            <div class="settings-header">
+                <h2 class="settings-title">Backup & Export</h2>
+                <p class="settings-subtitle">Backup your configuration and export data</p>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Configuration Backup</h3>
+                    
+                    <div class="export-import-section">
+                        <div class="export-import-box">
+                            <i class="fas fa-download fa-2x text-accent mb-2"></i>
+                            <h5>Export Settings</h5>
+                            <p class="small text-muted mb-3">Download your current configuration</p>
+                            <button class="btn btn-primary btn-sm" id="export-settings">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                        
+                        <div class="export-import-box">
+                            <i class="fas fa-upload fa-2x text-accent mb-2"></i>
+                            <h5>Import Settings</h5>
+                            <p class="small text-muted mb-3">Restore from configuration file</p>
+                            <input type="file" id="import-file" accept=".json" style="display: none;">
+                            <button class="btn btn-primary btn-sm" id="import-settings">
+                                <i class="fas fa-upload"></i>
+                                Import
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3 class="setting-group-title">Data Export</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Export Scan Results</h4>
+                            <p class="setting-description">Download all vulnerability scan results as JSON</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="btn btn-sm" id="export-scans">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Export Sessions</h4>
+                            <p class="setting-description">Download exploit session history</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="btn btn-sm" id="export-sessions">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4 class="setting-label">Complete Backup</h4>
+                            <p class="setting-description">Full backup including settings, data, and history</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="btn btn-primary btn-sm" id="full-backup">
+                                <i class="fas fa-archive"></i>
+                                Create Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Save Actions -->
+        <div class="settings-actions">
+            <button class="btn btn-primary" id="save-settings">
+                <i class="fas fa-save"></i>
+                Save Changes
+            </button>
+            <button class="btn" id="reset-form">
+                <i class="fas fa-undo"></i>
+                Reset
+            </button>
+            <button class="btn btn-success ml-auto" id="test-connection">
+                <i class="fas fa-plug"></i>
+                Test Network Connection
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class SettingsManager {
+    constructor() {
+        this.settings = {};
+        this.init();
+    }
+    
+    init() {
+        this.setupNavigation();
+        this.setupControls();
+        this.loadSettings();
+    }
+    
+    setupNavigation() {
+        const navLinks = document.querySelectorAll('.settings-nav-link');
+        const sections = document.querySelectorAll('.settings-section');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                const sectionId = link.dataset.section;
+                
+                // Update nav
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Update sections
+                sections.forEach(s => s.classList.remove('active'));
+                document.getElementById(`${sectionId}-section`).classList.add('active');
+            });
+        });
+    }
+    
+    setupControls() {
+        // API key visibility toggles
+        document.querySelectorAll('.api-key-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const input = toggle.parentNode.querySelector('input');
+                const icon = toggle.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            });
+        });
+        
+        // ML threshold slider
+        const mlThreshold = document.getElementById('ml-threshold');
+        const mlThresholdLabel = mlThreshold.nextElementSibling;
+        
+        mlThreshold.addEventListener('input', () => {
+            mlThresholdLabel.textContent = mlThreshold.value + '%';
+        });
+        
+        // Save settings
+        document.getElementById('save-settings').addEventListener('click', () => {
+            this.saveSettings();
+        });
+        
+        // Reset form
+        document.getElementById('reset-form').addEventListener('click', () => {
+            this.resetForm();
+        });
+        
+        // Test connection
+        document.getElementById('test-connection').addEventListener('click', () => {
+            this.testNetworkConnection();
+        });
+        
+        // Export/Import
+        document.getElementById('export-settings').addEventListener('click', () => {
+            this.exportSettings();
+        });
+        
+        document.getElementById('import-settings').addEventListener('click', () => {
+            document.getElementById('import-file').click();
+        });
+        
+        document.getElementById('import-file').addEventListener('change', (e) => {
+            this.importSettings(e.target.files[0]);
+        });
+        
+        // Data exports
+        document.getElementById('export-scans').addEventListener('click', () => {
+            this.exportData('scans');
+        });
+        
+        document.getElementById('export-sessions').addEventListener('click', () => {
+            this.exportData('sessions');
+        });
+        
+        document.getElementById('full-backup').addEventListener('click', () => {
+            this.createFullBackup();
+        });
+        
+        // Danger zone actions
+        document.getElementById('reset-settings').addEventListener('click', () => {
+            this.confirmDangerousAction('reset-settings', 'Reset all settings to defaults?');
+        });
+        
+        document.getElementById('clear-data').addEventListener('click', () => {
+            this.confirmDangerousAction('clear-data', 'Clear all stored data? This cannot be undone!');
+        });
+        
+        document.getElementById('factory-reset').addEventListener('click', () => {
+            this.confirmDangerousAction('factory-reset', 'Perform factory reset? This will erase everything!');
+        });
+    }
+    
+    loadSettings() {
+        try {
+            const saved = localStorage.getItem('smartsploit_settings');
+            if (saved) {
+                this.settings = JSON.parse(saved);
+                this.applySettings();
+            }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+    
+    applySettings() {
+        // Apply saved settings to form controls
+        Object.entries(this.settings).forEach(([key, value]) => {
+            const element = document.getElementById(key);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = value;
+                } else {
+                    element.value = value;
+                }
+            }
+        });
+    }
+    
+    collectSettings() {
+        const settings = {};
+        
+        // Collect all form inputs
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.id) {
+                if (input.type === 'checkbox') {
+                    settings[input.id] = input.checked;
+                } else if (input.type !== 'file') {
+                    settings[input.id] = input.value;
+                }
+            }
+        });
+        
+        return settings;
+    }
+    
+    async saveSettings() {
+        try {
+            this.settings = this.collectSettings();
+            localStorage.setItem('smartsploit_settings', JSON.stringify(this.settings));
+            
+            window.SmartSploitUtils.showNotification('Settings saved successfully', 'success');
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            window.SmartSploitUtils.showNotification('Failed to save settings', 'error');
+        }
+    }
+    
+    resetForm() {
+        if (confirm('Reset all settings to their default values?')) {
+            // Reset to defaults
+            this.settings = {};
+            localStorage.removeItem('smartsploit_settings');
+            location.reload();
+        }
+    }
+    
+    async testNetworkConnection() {
+        const button = document.getElementById('test-connection');
+        const originalText = button.innerHTML;
+        
+        try {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span> Testing...';
+            
+            const response = await fetch('/api/network_status');
+            const data = await response.json();
+            
+            if (data.success) {
+                const onlineCount = data.online_networks || 0;
+                const totalCount = data.total_networks || 0;
+                
+                if (onlineCount > 0) {
+                    window.SmartSploitUtils.showNotification(
+                        `Connection successful: ${onlineCount}/${totalCount} networks online`, 
+                        'success'
+                    );
+                } else {
+                    window.SmartSploitUtils.showNotification(
+                        'Connection failed: No networks accessible', 
+                        'error'
+                    );
+                }
+            } else {
+                window.SmartSploitUtils.showNotification('Network test failed', 'error');
+            }
+        } catch (error) {
+            window.SmartSploitUtils.showNotification('Network test error', 'error');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+    
+    exportSettings() {
+        const settings = this.collectSettings();
+        const blob = new Blob([JSON.stringify(settings, null, 2)], { 
+            type: 'application/json' 
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `smartsploit_settings_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        window.SmartSploitUtils.showNotification('Settings exported successfully', 'success');
+    }
+    
+    importSettings(file) {
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const settings = JSON.parse(e.target.result);
+                this.settings = settings;
+                this.applySettings();
+                
+                window.SmartSploitUtils.showNotification('Settings imported successfully', 'success');
+            } catch (error) {
+                window.SmartSploitUtils.showNotification('Failed to import settings', 'error');
+            }
+        };
+        
+        reader.readAsText(file);
+    }
+    
+    async exportData(type) {
+        try {
+            let endpoint, filename;
+            
+            switch (type) {
+                case 'scans':
+                    endpoint = '/api/targets';
+                    filename = 'smartsploit_scan_results';
+                    break;
+                case 'sessions':
+                    endpoint = '/api/sessions';
+                    filename = 'smartsploit_sessions';
+                    break;
+                default:
+                    return;
+            }
+            
+            const response = await fetch(endpoint);
+            const data = await response.json();
+            
+            if (data.success) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { 
+                    type: 'application/json' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${filename}_${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                window.SmartSploitUtils.showNotification(`${type} exported successfully`, 'success');
+            } else {
+                window.SmartSploitUtils.showNotification(`Failed to export ${type}`, 'error');
+            }
+        } catch (error) {
+            window.SmartSploitUtils.showNotification(`Error exporting ${type}`, 'error');
+        }
+    }
+    
+    async createFullBackup() {
+        try {
+            const [settingsResponse, targetsResponse, sessionsResponse] = await Promise.all([
+                Promise.resolve({ success: true, data: this.collectSettings() }),
+                fetch('/api/targets'),
+                fetch('/api/sessions')
+            ]);
+            
+            const backup = {
+                timestamp: new Date().toISOString(),
+                version: '2.1.0',
+                settings: settingsResponse.data,
+                targets: (await targetsResponse.json()).success ? (await targetsResponse.json()).targets : [],
+                sessions: (await sessionsResponse.json()).success ? (await sessionsResponse.json()).sessions : []
+            };
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { 
+                type: 'application/json' 
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `smartsploit_backup_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            window.SmartSploitUtils.showNotification('Full backup created successfully', 'success');
+        } catch (error) {
+            window.SmartSploitUtils.showNotification('Failed to create backup', 'error');
+        }
+    }
+    
+    confirmDangerousAction(action, message) {
+        if (confirm(message + '\n\nType "CONFIRM" to proceed:')) {
+            const confirmation = prompt('Type CONFIRM to proceed:');
+            if (confirmation === 'CONFIRM') {
+                this.executeDangerousAction(action);
+            }
+        }
+    }
+    
+    executeDangerousAction(action) {
+        switch (action) {
+            case 'reset-settings':
+                localStorage.removeItem('smartsploit_settings');
+                location.reload();
+                break;
+                
+            case 'clear-data':
+                // Clear all stored data
+                ['smartsploit_settings', 'smartsploit_command_history'].forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                window.SmartSploitUtils.showNotification('All data cleared', 'success');
+                break;
+                
+            case 'factory-reset':
+                localStorage.clear();
+                sessionStorage.clear();
+                location.reload();
+                break;
+        }
+    }
+}
+
+// Initialize settings manager
+document.addEventListener('DOMContentLoaded', () => {
+    window.settingsManager = new SettingsManager();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+
+{% block title %}Sessions - SmartSploit Framework{% endblock %}
+
+{% block page_title %}Session Management{% endblock %}
+{% block page_subtitle %}Monitor and manage active exploitation sessions{% endblock %}
+
+{% block head %}
+<style>
+.sessions-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+}
+
+.sessions-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.session-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.session-card:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+}
+
+.session-header {
+    background: var(--bg-tertiary);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.session-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.session-status.active {
+    background: rgba(52, 168, 83, 0.2);
+    color: var(--status-success);
+    border: 1px solid rgba(52, 168, 83, 0.3);
+}
+
+.session-status.closed {
+    background: rgba(124, 132, 151, 0.2);
+    color: var(--text-muted);
+    border: 1px solid rgba(124, 132, 151, 0.3);
+}
+
+.session-status.failed {
+    background: rgba(234, 67, 53, 0.2);
+    color: var(--status-error);
+    border: 1px solid rgba(234, 67, 53, 0.3);
+}
+
+.session-body {
+    padding: 1.5rem;
+}
+
+.session-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.session-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.session-info-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.session-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.session-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.quick-actions-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.panel-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.panel-title {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-accent);
+}
+
+.panel-body {
+    padding: 1rem;
+}
+
+.quick-action-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.session-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.metric-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .sessions-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .session-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .session-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Session Metrics -->
+<div class="session-metrics fade-in">
+    <div class="metric-box">
+        <div class="metric-value">{{ active_sessions|length }}</div>
+        <div class="metric-label">Active Sessions</div>
+    </div>
+    <div class="metric-box">
+        <div class="metric-value">{{ db_sessions|length }}</div>
+        <div class="metric-label">Total Sessions</div>
+    </div>
+    <div class="metric-box">
+        <div class="metric-value">{{ db_sessions|selectattr('status', 'equalto', 'active')|list|length }}</div>
+        <div class="metric-label">Running</div>
+    </div>
+    <div class="metric-box">
+        <div class="metric-value">
+            {% set success_count = db_sessions|selectattr('status', 'equalto', 'completed')|list|length %}
+            {% if db_sessions|length > 0 %}
+                {{ ((success_count / db_sessions|length) * 100)|round|int }}%
+            {% else %}
+                0%
+            {% endif %}
+        </div>
+        <div class="metric-label">Success Rate</div>
+    </div>
+</div>
+
+<div class="sessions-layout fade-in">
+    <!-- Main Sessions Area -->
+    <div class="sessions-main">
+        <!-- Active Sessions -->
+        {% if active_sessions %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-play-circle text-success"></i>
+                    Active Sessions
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% for session in active_sessions %}
+                <div class="session-card" style="margin: 1rem; margin-bottom: 1rem;">
+                    <div class="session-header">
+                        <div class="session-title">Session {{ session.id }}</div>
+                        <span class="session-status active">Active</span>
+                    </div>
+                    <div class="session-body">
+                        <div class="session-info">
+                            <div class="session-info-item">
+                                <span class="session-info-label">Target Address</span>
+                                <span class="session-info-value font-mono">{{ session.target.address }}</span>
+                            </div>
+                            <div class="session-info-item">
+                                <span class="session-info-label">Network</span>
+                                <span class="session-info-value">{{ session.target.network.title() }}</span>
+                            </div>
+                            <div class="session-info-item">
+                                <span class="session-info-label">Exploit Module</span>
+                                <span class="session-info-value">{{ session.exploit }}</span>
+                            </div>
+                            <div class="session-info-item">
+                                <span class="session-info-label">Started</span>
+                                <span class="session-info-value">{{ session.created_at.strftime('%Y-%m-%d %H:%M') if session.created_at else 'Unknown' }}</span>
+                            </div>
+                        </div>
+                        <div class="session-actions">
+                            <button class="btn btn-warning btn-sm" onclick="pauseSession('{{ session.id }}')">
+                                <i class="fas fa-pause"></i> Pause
+                            </button>
+                            <button class="btn btn-error btn-sm" onclick="stopSession('{{ session.id }}')">
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                            <button class="btn btn-sm" onclick="viewSessionDetails('{{ session.id }}')">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Session History -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-history text-info"></i>
+                    Session History
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if db_sessions %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>Target</th>
+                                <th>Module</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in db_sessions %}
+                            <tr>
+                                <td class="font-mono">{{ session.session_id[:8] }}...</td>
+                                <td class="font-mono">{{ session.target_address[:8] }}...{{ session.target_address[-4:] }}</td>
+                                <td>{{ session.exploit_module.split('/')[-1] }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'success' if session.status == 'active' else 'neutral' if session.status == 'closed' else 'error' }}">
+                                        {{ session.status.title() }}
+                                    </span>
+                                </td>
+                                <td class="text-muted small">{{ session.created_at.strftime('%m/%d %H:%M') if session.created_at else 'N/A' }}</td>
+                                <td class="text-muted small">{{ session.updated_at.strftime('%m/%d %H:%M') if session.updated_at else 'N/A' }}</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="viewSessionDetails('{{ session.session_id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if session.status == 'active' %}
+                                    <button class="btn btn-error btn-sm" onclick="stopSession('{{ session.session_id }}')">
+                                        <i class="fas fa-stop"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <p class="mb-1">No sessions found</p>
+                    <p class="small">Session history will appear here when you run exploit modules</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="session-sidebar">
+        <!-- Quick Actions -->
+        <div class="quick-actions-panel">
+            <div class="panel-header">
+                <h4 class="panel-title">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h4>
+            </div>
+            <div class="panel-body">
+                <button class="btn quick-action-btn" onclick="createNewSession()">
+                    <i class="fas fa-plus"></i> New Session
+                </button>
+                <button class="btn quick-action-btn" onclick="refreshSessions()">
+                    <i class="fas fa-sync-alt"></i> Refresh Sessions
+                </button>
+                <button class="btn quick-action-btn" onclick="exportSessions()">
+                    <i class="fas fa-download"></i> Export History
+                </button>
+                <button class="btn quick-action-btn" onclick="clearHistory()">
+                    <i class="fas fa-trash"></i> Clear History
+                </button>
+            </div>
+        </div>
+        
+        <!-- Session Filters -->
+        <div class="quick-actions-panel">
+            <div class="panel-header">
+                <h4 class="panel-title">
+                    <i class="fas fa-filter"></i>
+                    Filters
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="status-filter">
+                        <option value="">All</option>
+                        <option value="active">Active</option>
+                        <option value="closed">Closed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Module Type</label>
+                    <select class="form-select" id="module-filter">
+                        <option value="">All</option>
+                        <option value="exploit">Exploits</option>
+                        <option value="auxiliary">Auxiliary</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Network</label>
+                    <select class="form-select" id="network-filter">
+                        <option value="">All</option>
+                        <option value="mainnet">Mainnet</option>
+                        <option value="sepolia">Sepolia</option>
+                        <option value="polygon">Polygon</option>
+                        <option value="local">Local</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class SessionManager {
+    constructor() {
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.setupFilters();
+        this.startAutoRefresh();
+    }
+    
+    setupEventListeners() {
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            this.refreshSessionData();
+        }, 30000);
+    }
+    
+    setupFilters() {
+        const filters = ['status-filter', 'module-filter', 'network-filter'];
+        filters.forEach(filterId => {
+            const filter = document.getElementById(filterId);
+            if (filter) {
+                filter.addEventListener('change', () => this.applyFilters());
+            }
+        });
+    }
+    
+    applyFilters() {
+        const statusFilter = document.getElementById('status-filter').value;
+        const moduleFilter = document.getElementById('module-filter').value;
+        const networkFilter = document.getElementById('network-filter').value;
+        
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            let visible = true;
+            
+            if (statusFilter) {
+                const status = row.querySelector('.badge').textContent.toLowerCase().trim();
+                visible = visible && status === statusFilter;
+            }
+            
+            if (moduleFilter) {
+                const module = row.cells[2].textContent.toLowerCase();
+                visible = visible && module.includes(moduleFilter);
+            }
+            
+            // Apply visibility
+            row.style.display = visible ? '' : 'none';
+        });
+    }
+    
+    async refreshSessionData() {
+        try {
+            const response = await fetch('/api/sessions');
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update session count
+                const activeCount = data.sessions.filter(s => s.status === 'active').length;
+                document.querySelector('[data-metric="active-sessions"] .metric-value').textContent = activeCount;
+            }
+        } catch (error) {
+            console.error('Error refreshing session data:', error);
+        }
+    }
+    
+    startAutoRefresh() {
+        setInterval(() => {
+            this.refreshSessionData();
+        }, 10000); // Refresh every 10 seconds
+    }
+}
+
+// Session action functions
+async function pauseSession(sessionId) {
+    if (!confirm('Are you sure you want to pause this session?')) return;
+    
+    try {
+        const response = await fetch(`/api/sessions/${sessionId}/pause`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            window.SmartSploitUtils.showNotification('Session paused', 'success');
+            location.reload();
+        } else {
+            window.SmartSploitUtils.showNotification(data.error || 'Failed to pause session', 'error');
+        }
+    } catch (error) {
+        window.SmartSploitUtils.showNotification('Error pausing session', 'error');
+    }
+}
+
+async function stopSession(sessionId) {
+    if (!confirm('Are you sure you want to stop this session?')) return;
+    
+    try {
+        const response = await fetch(`/api/sessions/${sessionId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            window.SmartSploitUtils.showNotification('Session stopped', 'success');
+            location.reload();
+        } else {
+            window.SmartSploitUtils.showNotification(data.error || 'Failed to stop session', 'error');
+        }
+    } catch (error) {
+        window.SmartSploitUtils.showNotification('Error stopping session', 'error');
+    }
+}
+
+function viewSessionDetails(sessionId) {
+    // Open session details modal or navigate to details page
+    alert(`View details for session: ${sessionId}\n(Feature coming soon)`);
+}
+
+function createNewSession() {
+    // Navigate to module selection or show new session dialog
+    window.location.href = '/modules';
+}
+
+function refreshSessions() {
+    location.reload();
+}
+
+function exportSessions() {
+    alert('Export sessions feature coming soon');
+}
+
+function clearHistory() {
+    if (confirm('Are you sure you want to clear all session history?')) {
+        alert('Clear history feature coming soon');
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    new SessionManager();
+});
+</script>
+{% endblock %}
